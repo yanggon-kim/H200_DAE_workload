@@ -102,6 +102,14 @@ bytes_moved = nnz × 4 (values, FP32)
 
 **Physical floor** = `total_bytes / peak_BW`. The "Gap" column shows how many times slower the actual execution is than this theoretical minimum.
 
+![SpMV Effective Bandwidth — H200](spmv_bw_efficiency.png)
+
+*Figure 1: Effective bandwidth across all 6 matrices. Large matrices (ldoor, cage15, circuit5M) achieve >50% of peak, while small matrices are limited by grid saturation.*
+
+![Physical Floor vs Measured](spmv_floor_vs_actual.png)
+
+*Figure 2: Physical floor (minimum possible time) vs measured execution time. The gap ratio ranges from 1.6x (ldoor) to 4.0x (cant), indicating significant latency-related overhead.*
+
 ### 3.2 nsys Kernel Breakdown
 
 From the nsys CUDA GPU Kernel Summary (cage15):
@@ -170,6 +178,14 @@ From NCU raw metrics (`smsp__average_warps_issue_stalled_*_per_issue_active.rati
 
 This directly confirms the **dependent load chain** in CSR SpMV as the primary bottleneck.
 
+![Warp Stall Breakdown — cage15](spmv_stall_breakdown_cage15.png)
+
+*Figure 3: Warp stall breakdown for cage15. Long Scoreboard (memory latency) dominates at 38.4%, directly proving the dependent load chain bottleneck.*
+
+![Warp Stall Comparison Across Matrices](spmv_stall_comparison.png)
+
+*Figure 4: Stall profile comparison across three matrices. Long Scoreboard consistently dominates at 33–38% regardless of matrix size or sparsity pattern.*
+
 ### 4.3 Memory Access Efficiency
 
 | Metric | cant | ldoor | cage15 |
@@ -233,6 +249,10 @@ SpMV's AI is **85--119x below the ridge point** — it is deeply, fundamentally 
 | circuit5M | 803.2 | 0.1673 | 0.3211 | 1.9x | 52.1% |
 | cage15 | 1,272.9 | 0.2652 | 0.4636 | 1.7x | 57.2% |
 
+![SpMV Roofline Analysis — H200](spmv_roofline_h200.png)
+
+*Figure 5: Roofline model showing all 6 matrices deep in the memory-bound regime (AI = 0.12–0.16), far below the ridge point of 13.9 FLOP/byte.*
+
 ### 5.2 Arithmetic Intensity
 
 SpMV's arithmetic intensity is fundamentally low:
@@ -288,6 +308,10 @@ The exact DRAM latency for HBM3e under SpMV access patterns is uncertain. NVIDIA
 | 200 ns | 56.8 | **100%** (4,800 GB/s) | 56.3% (2,703 GB/s) | — |
 | **300 ns** (primary) | **85.2** | **75.1%** (3,605 GB/s) | **37.5%** (1,802 GB/s) | — |
 | 400 ns | 113.6 | 56.3% (2,703 GB/s) | 28.2% (1,352 GB/s) | ldoor at 60.8% |
+
+![DRAM Latency Sensitivity Analysis](spmv_latency_sensitivity.png)
+
+*Figure 6: Left — BW ceiling vs DRAM latency showing how the Little's Law and dep-chain ceilings decrease with latency. Right — DAE benefit remains substantial across all plausible latencies, with CPI-based speedup (1.6x) independent of the latency assumption.*
 
 **Interpretation:** Our best measurement (ldoor at 60.8%) falls between the 300 ns ceiling (75.1%) and the 400 ns ceiling (56.3%). This is consistent with: (a) effective DRAM latency in the 300--400 ns range for SpMV access patterns, (b) the merge-based algorithm achieving partial overlap that narrows the gap from the theoretical ceiling, and (c) L2 cache hits on portions of the x-vector reducing effective latency. The 300 ns primary estimate is conservative — the actual latency may be somewhat higher under SpMV's irregular access pattern.
 
@@ -356,6 +380,10 @@ For each matrix, the gap between physical floor and measured time decomposes int
 | circuit5M | 0.1720 | 0.0570 | 0.0921 | 0.3211 |
 | cage15 | 0.2695 | 0.0893 | 0.1048 | 0.4636 |
 
+![Gap Decomposition](spmv_gap_decomposition.png)
+
+*Figure 7: Stacked bar chart showing the three-factor gap decomposition. Blue = physical floor (irreducible), orange = Little's Law deficit (warp-limited), red = dependent load chain + other effects.*
+
 **Interpretation:** The "Dep Chain + Other" column combines the dependent load chain penalty (the dominant factor for large matrices, as confirmed by NCU Long Scoreboard stalls) with secondary effects including grid saturation (small matrices), irregular access patterns (cage15), and kernel launch overhead. For the three large matrices (ldoor, circuit5M, cage15), the Little's Law deficit alone accounts for 20--27% of the total gap, with the dependent load chain accounting for most of the remainder.
 
 ### 5.6 Root Cause Summary
@@ -394,8 +422,6 @@ All six matrices fall deeply in the **memory-bound** regime, far below the H200'
 - Achieved throughput: 151--474 GFLOP/s (vs. 66,900 GFLOP/s peak)
 - The performance ceiling for SpMV is **entirely determined by memory bandwidth utilization**
 
-The roofline plot (`analysis/spmv_roofline_h200.png`) shows all matrices clustered in the memory-bound region, achieving only 27--61% of the memory bandwidth ceiling.
-
 ### 6.2 Bandwidth Utilization Trend
 
 Bandwidth utilization scales with matrix size:
@@ -404,7 +430,9 @@ Bandwidth utilization scales with matrix size:
 - **Medium matrices** (pwtk): 45% — approaching single-matrix saturation
 - **Large matrices** (ldoor, circuit5M, cage15): 52--61% — best utilization, limited by latency
 
-See `analysis/spmv_bw_efficiency.png` for the full comparison.
+![NNZ vs Effective Bandwidth](spmv_nnz_vs_bw.png)
+
+*Figure 8: Effective bandwidth increases with NNZ following a logarithmic trend, but asymptotes well below the 4,800 GB/s peak — the latency-bandwidth ceiling.*
 
 ---
 
@@ -503,6 +531,10 @@ Using our measured data and assuming DAE lifts the ceiling from the dep-chain-li
 | cant | 1,205 | 25.1% | ~50% (2,400 GB/s)* | **2.00x** |
 
 *Small matrices are additionally limited by grid saturation; DAE doubles effective MLP but grid effects remain.*
+
+![DAE Speedup Prediction](spmv_dae_speedup.png)
+
+*Figure 9: DAE benefit from two independent analyses. Purple = BW-based (Little's Law ceiling lift). Red = CPI-based (NCU stall removal). The CPI-based estimate is more direct as it is derived from measured stall data.*
 
 **Alternative analysis using CPI reduction:** If the Long Scoreboard stalls are eliminated entirely:
 
@@ -648,6 +680,10 @@ PyTorch forces INT64 for all sparse CSR tensor indices, regardless of matrix dim
 - With INT64 indices: AI = 0.11--0.16 FLOP/byte
 - With INT32 indices: AI = 0.15--0.24 FLOP/byte
 - Either way, AI remains **50--100x below the ridge point** (13.9 FLOP/byte) — SpMV is fundamentally memory-bound regardless of index width.
+
+![INT32 vs INT64 Comparison](spmv_int32_vs_int64.png)
+
+*Figure 10: Left — INT64 wastes 29–33% of data movement on unnecessary index width. Right — Even with INT32, arithmetic intensity (0.15–0.24) remains ~60–90x below the ridge point.*
 
 **Key implication for DAE analysis:** Even with optimal INT32 indices, SpMV remains deeply memory-latency-bound. The dependent load chain (`col_indices[j]` → `x[col]`) exists regardless of index width; INT32 only reduces the cost of the first load by 50%. The DAE argument — that breaking the dependent load chain via hardware FIFOs would yield 1.3--1.6x speedup — holds equally for INT32 and INT64 implementations. In fact, with INT32 the kernel would be even more latency-dominated (less data to stream, same dependent latency), potentially making DAE *more* beneficial in relative terms.
 

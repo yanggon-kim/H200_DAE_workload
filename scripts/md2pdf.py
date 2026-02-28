@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Convert a markdown file to a well-formatted PDF with proper tables."""
+"""Convert a markdown file to a well-formatted PDF with proper tables and images."""
 
+import os
+import re
 import sys
 import markdown
 from weasyprint import HTML
 
 def md_to_pdf(md_path, pdf_path):
+    md_dir = os.path.dirname(os.path.abspath(md_path))
+
     with open(md_path, "r") as f:
         md_text = f.read()
 
@@ -13,6 +17,22 @@ def md_to_pdf(md_path, pdf_path):
     html_body = markdown.markdown(
         md_text,
         extensions=["tables", "fenced_code", "toc", "sane_lists"],
+    )
+
+    # Resolve relative image paths to absolute file:// URIs for weasyprint
+    def resolve_img_src(match):
+        prefix = match.group(1)
+        src = match.group(2)
+        suffix = match.group(3)
+        if not src.startswith(("http://", "https://", "file://", "data:")):
+            abs_path = os.path.abspath(os.path.join(md_dir, src))
+            src = "file://" + abs_path
+        return f'{prefix}{src}{suffix}'
+
+    html_body = re.sub(
+        r'(<img\s[^>]*src=["\'])([^"\']+)(["\'])',
+        resolve_img_src,
+        html_body,
     )
 
     # Wrap in a full HTML document with CSS styling
@@ -143,6 +163,17 @@ ul, ol {{
 li {{
     margin-bottom: 2pt;
 }}
+img {{
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0.12in auto 0.06in auto;
+    page-break-inside: avoid;
+}}
+/* Style figure captions — the <em> inside <p> that wraps images */
+p img {{
+    margin-bottom: 2pt;
+}}
 </style>
 </head>
 <body>
@@ -150,7 +181,7 @@ li {{
 </body>
 </html>"""
 
-    HTML(string=full_html).write_pdf(pdf_path)
+    HTML(string=full_html, base_url=md_dir).write_pdf(pdf_path)
     print(f"PDF written to: {pdf_path}")
 
 
