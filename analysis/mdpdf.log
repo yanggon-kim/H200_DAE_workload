@@ -1,0 +1,1580 @@
+    INFO: 2026-02-28 04:13:09,056:               log.py:   20: Logging to /storage/scratch1/6/jkim4112/gpullm/00_dae_work/00_SpMV/analysis/mdpdf.log
+   DEBUG: 2026-02-28 04:13:09,056:               cli.py:  103: spmv_h200_report.md
+    INFO: 2026-02-28 04:13:09,138:         converter.py:   14: spmv_h200_report.md
+   DEBUG: 2026-02-28 04:13:09,274:      pdf_renderer.py:  470: printSegment: SpMV Performance Analysis on NVIDIA H200 GPU
+   DEBUG: 2026-02-28 04:13:09,403:      pdf_renderer.py:  470: printSegment: Date:
+   DEBUG: 2026-02-28 04:13:09,439:      pdf_renderer.py:  470: printSegment:  2026-02-28
+   DEBUG: 2026-02-28 04:13:09,441:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,442:      pdf_renderer.py:  470: printSegment: GPU:
+   DEBUG: 2026-02-28 04:13:09,443:      pdf_renderer.py:  470: printSegment:  NVIDIA H200 SXM (Hopper, HBM3e)
+   DEBUG: 2026-02-28 04:13:09,444:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,444:      pdf_renderer.py:  470: printSegment: Workload:
+   DEBUG: 2026-02-28 04:13:09,445:      pdf_renderer.py:  470: printSegment:  Sparse Matrix-Vector Multiplication
+   DEBUG: 2026-02-28 04:13:09,446:      pdf_renderer.py:  470: printSegment: (CSR SpMV)
+   DEBUG: 2026-02-28 04:13:09,446:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,447:      pdf_renderer.py:  470: printSegment: Benchmark Suite:
+   DEBUG: 2026-02-28 04:13:09,448:      pdf_renderer.py:  470: printSegment:  SuiteSparse Matrix Collection (Davis 
+   DEBUG: 2026-02-28 04:13:09,448:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-28 04:13:09,449:      pdf_renderer.py:  470: printSegment:  Hu, ACM TOMS 2011)
+   DEBUG: 2026-02-28 04:13:09,450:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,450:      pdf_renderer.py:  470: printSegment: Framework:
+   DEBUG: 2026-02-28 04:13:09,451:      pdf_renderer.py:  470: printSegment: 
+   DEBUG: 2026-02-28 04:13:09,452:      pdf_renderer.py:  470: printSegment: PyTorch 2.9.1+cu128 → cuSPARSE 
+   DEBUG: 2026-02-28 04:13:09,470:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:09,472:      pdf_renderer.py:  470: printSegment: 1. Executive Summary
+   DEBUG: 2026-02-28 04:13:09,509:      pdf_renderer.py:  470: printSegment: Sparse Matrix-Vector Multiplication (SpMV) is the prototypical memory-bound kernel in scientific computing. This
+   DEBUG: 2026-02-28 04:13:09,527:      pdf_renderer.py:  470: printSegment: report presents a comprehensive performance analysis of SpMV on the NVIDIA H200 GPU (Hopper architecture),
+   DEBUG: 2026-02-28 04:13:09,533:      pdf_renderer.py:  470: printSegment: benchmarked against six matrices from the SuiteSparse Matrix Collection spanning 3.1M to 99.2M nonzeros.
+   DEBUG: 2026-02-28 04:13:09,534:      pdf_renderer.py:  470: printSegment: Unlike prior B200 analysis which lacked kernel-level profiling, 
+   DEBUG: 2026-02-28 04:13:09,535:      pdf_renderer.py:  470: printSegment: this study includes full NSight Compute (NCU)
+   DEBUG: 2026-02-28 04:13:09,536:      pdf_renderer.py:  470: printSegment: deep-dive analysis
+   DEBUG: 2026-02-28 04:13:09,537:      pdf_renderer.py:  470: printSegment:  with warp stall breakdowns, providing direct empirical evidence for the bottleneck mechanisms.
+   DEBUG: 2026-02-28 04:13:09,538:      pdf_renderer.py:  470: printSegment: Key Finding:
+   DEBUG: 2026-02-28 04:13:09,539:      pdf_renderer.py:  470: printSegment:  The H200 achieves 
+   DEBUG: 2026-02-28 04:13:09,540:      pdf_renderer.py:  470: printSegment: 25.1--60.8% of its 4,800 GB/s peak memory bandwidth
+   DEBUG: 2026-02-28 04:13:09,541:      pdf_renderer.py:  470: printSegment:  on SpMV, a significant
+   DEBUG: 2026-02-28 04:13:09,542:      pdf_renderer.py:  470: printSegment: improvement over the B200
+   DEBUG: 2026-02-28 04:13:09,543:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:09,544:      pdf_renderer.py:  470: printSegment: s 10.7--41.7% of 8,000 GB/s, but still far below theoretical peak. The root cause is a 
+   DEBUG: 2026-02-28 04:13:09,545:      pdf_renderer.py:  470: printSegment: latency-bandwidth mismatch
+   DEBUG: 2026-02-28 04:13:09,546:      pdf_renderer.py:  470: printSegment: : Little
+   DEBUG: 2026-02-28 04:13:09,546:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:09,549:      pdf_renderer.py:  470: printSegment: s Law requires ~85 warps/SM (at ~300 ns DRAM latency) but the H200
+   DEBUG: 2026-02-28 04:13:09,550:      pdf_renderer.py:  470: printSegment: provides only 64, and SpMV
+   DEBUG: 2026-02-28 04:13:09,550:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:09,551:      pdf_renderer.py:  470: printSegment: s 
+   DEBUG: 2026-02-28 04:13:09,552:      pdf_renderer.py:  470: printSegment: dependent load chain
+   DEBUG: 2026-02-28 04:13:09,552:      pdf_renderer.py:  470: printSegment:  (
+   DEBUG: 2026-02-28 04:13:09,553:      pdf_renderer.py:  470: printSegment: col_indices[j]
+   DEBUG: 2026-02-28 04:13:09,554:      pdf_renderer.py:  470: printSegment:  → 
+   DEBUG: 2026-02-28 04:13:09,554:      pdf_renderer.py:  470: printSegment: x[col]
+   DEBUG: 2026-02-28 04:13:09,556:      pdf_renderer.py:  470: printSegment: ) further halves the effective
+   DEBUG: 2026-02-28 04:13:09,556:      pdf_renderer.py:  470: printSegment: memory-level parallelism.
+   DEBUG: 2026-02-28 04:13:09,557:      pdf_renderer.py:  470: printSegment: NCU Evidence:
+   DEBUG: 2026-02-28 04:13:09,558:      pdf_renderer.py:  470: printSegment:  The dominant warp stall is 
+   DEBUG: 2026-02-28 04:13:09,559:      pdf_renderer.py:  470: printSegment: Long Scoreboard (L1TEX) at 33--38% of total CPI
+   DEBUG: 2026-02-28 04:13:09,573:      pdf_renderer.py:  470: printSegment: , directly
+   DEBUG: 2026-02-28 04:13:09,582:      pdf_renderer.py:  470: printSegment: confirming the dependent load chain as the primary bottleneck. This is the exact pattern that a Decoupled
+   DEBUG: 2026-02-28 04:13:09,584:      pdf_renderer.py:  470: printSegment: Access-Execute (DAE) architecture would address. Eliminating these stalls would yield a theoretical 
+   DEBUG: 2026-02-28 04:13:09,585:      pdf_renderer.py:  470: printSegment: 1.49--1.62x
+   DEBUG: 2026-02-28 04:13:09,586:      pdf_renderer.py:  470: printSegment: speedup
+   DEBUG: 2026-02-28 04:13:09,586:      pdf_renderer.py:  470: printSegment: .
+   DEBUG: 2026-02-28 04:13:09,588:      pdf_renderer.py:  470: printSegment: 2. Methodology
+   DEBUG: 2026-02-28 04:13:09,588:      pdf_renderer.py:  470: printSegment: 2.1 Hardware Platform
+   DEBUG: 2026-02-28 04:13:09,589:      pdf_renderer.py:  470: printSegment: | Specification | Value |
+   DEBUG: 2026-02-28 04:13:09,590:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,591:      pdf_renderer.py:  470: printSegment: |---|---|
+   DEBUG: 2026-02-28 04:13:09,592:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,592:      pdf_renderer.py:  470: printSegment: | GPU | NVIDIA H200 SXM (Hopper) |
+   DEBUG: 2026-02-28 04:13:09,593:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,594:      pdf_renderer.py:  470: printSegment: | Compute Capability | 9.0 |
+   DEBUG: 2026-02-28 04:13:09,595:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,596:      pdf_renderer.py:  470: printSegment: | Streaming
+   DEBUG: 2026-02-28 04:13:09,597:      pdf_renderer.py:  470: printSegment: Multiprocessors | 132 |
+   DEBUG: 2026-02-28 04:13:09,598:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,599:      pdf_renderer.py:  470: printSegment: | Max Warps per SM | 64 (2,048 threads / 32) |
+   DEBUG: 2026-02-28 04:13:09,599:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,600:      pdf_renderer.py:  470: printSegment: | Max Threads per SM | 2,048 |
+   DEBUG: 2026-02-28 04:13:09,601:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,602:      pdf_renderer.py:  470: printSegment: | Registers per
+   DEBUG: 2026-02-28 04:13:09,603:      pdf_renderer.py:  470: printSegment: SM | 65,536 |
+   DEBUG: 2026-02-28 04:13:09,604:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,605:      pdf_renderer.py:  470: printSegment: | HBM3e Capacity | 141 GB |
+   DEBUG: 2026-02-28 04:13:09,605:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,606:      pdf_renderer.py:  470: printSegment: | Peak Memory Bandwidth | 4,800 GB/s |
+   DEBUG: 2026-02-28 04:13:09,607:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,608:      pdf_renderer.py:  470: printSegment: | Peak FP32 (non-tensor) |
+   DEBUG: 2026-02-28 04:13:09,609:      pdf_renderer.py:  470: printSegment: ~66.9 TFLOPS |
+   DEBUG: 2026-02-28 04:13:09,610:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,611:      pdf_renderer.py:  470: printSegment: | SM Clock | 1,980 MHz |
+   DEBUG: 2026-02-28 04:13:09,612:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,613:      pdf_renderer.py:  470: printSegment: | Memory Clock | 3,201 MHz |
+   DEBUG: 2026-02-28 04:13:09,613:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,615:      pdf_renderer.py:  470: printSegment: | DRAM Latency (estimated) | ~300 ns
+   DEBUG: 2026-02-28 04:13:09,616:      pdf_renderer.py:  470: printSegment: (sensitivity: 200--400 ns) |
+   DEBUG: 2026-02-28 04:13:09,617:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,618:      pdf_renderer.py:  470: printSegment: | L2 Cache | ~50 MB |
+   DEBUG: 2026-02-28 04:13:09,619:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,620:      pdf_renderer.py:  470: printSegment: | Warp Schedulers per SM | 4 |
+   DEBUG: 2026-02-28 04:13:09,621:      pdf_renderer.py:  470: printSegment: 2.2 Software Stack
+   DEBUG: 2026-02-28 04:13:09,621:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,623:      pdf_renderer.py:  470: printSegment: CUDA:
+   DEBUG: 2026-02-28 04:13:09,624:      pdf_renderer.py:  470: printSegment:  13.0.1 (Driver 570.86.15)
+   DEBUG: 2026-02-28 04:13:09,625:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,626:      pdf_renderer.py:  470: printSegment: PyTorch:
+   DEBUG: 2026-02-28 04:13:09,627:      pdf_renderer.py:  470: printSegment:  2.9.1+cu128 (torch.sparse.mm using cuSPARSE backend)
+   DEBUG: 2026-02-28 04:13:09,628:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,629:      pdf_renderer.py:  470: printSegment: cuSPARSE Kernel:
+   DEBUG: 2026-02-28 04:13:09,630:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,631:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:09,632:      pdf_renderer.py:  470: printSegment:  (merge-based CSR SpMV)
+   DEBUG: 2026-02-28 04:13:09,633:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,634:      pdf_renderer.py:  470: printSegment: Profiling Tools:
+   DEBUG: 2026-02-28 04:13:09,635:      pdf_renderer.py:  470: printSegment:  CUDA Events (timing), nsys 2025.3.2, ncu 2025.3.1
+   DEBUG: 2026-02-28 04:13:09,636:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,637:      pdf_renderer.py:  470: printSegment: Python:
+   DEBUG: 2026-02-28 04:13:09,638:      pdf_renderer.py:  470: printSegment:  3.13 (conda env: scaleai)
+   DEBUG: 2026-02-28 04:13:09,639:      pdf_renderer.py:  470: printSegment: 2.3 Benchmark Suite
+   DEBUG: 2026-02-28 04:13:09,642:      pdf_renderer.py:  470: printSegment: Six matrices from the SuiteSparse Matrix Collection, selected to span a range of sizes, sparsity patterns, and
+   DEBUG: 2026-02-28 04:13:09,643:      pdf_renderer.py:  470: printSegment: application domains:
+   DEBUG: 2026-02-28 04:13:09,644:      pdf_renderer.py:  470: printSegment: | Matrix | Rows | NNZ | Avg NNZ/Row | Domain | Source Group |
+   DEBUG: 2026-02-28 04:13:09,645:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,646:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:09,647:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,649:      pdf_renderer.py:  470: printSegment: | webbase-1M | 1,000,005 |
+   DEBUG: 2026-02-28 04:13:09,651:      pdf_renderer.py:  470: printSegment: 3,105,536 | 3.1 | Web graph | Williams |
+   DEBUG: 2026-02-28 04:13:09,651:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,653:      pdf_renderer.py:  470: printSegment: | cant | 62,451 | 4,007,383 | 64.2 | FEM cantilever | Williams |
+   DEBUG: 2026-02-28 04:13:09,654:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,657:      pdf_renderer.py:  470: printSegment: | pwtk |
+   DEBUG: 2026-02-28 04:13:09,658:      pdf_renderer.py:  470: printSegment: 217,918 | 11,634,424 | 53.4 | Pressurized wind tunnel | Boeing |
+   DEBUG: 2026-02-28 04:13:09,659:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,661:      pdf_renderer.py:  470: printSegment: | ldoor | 952,203 | 46,522,475 | 48.9 | Large door
+   DEBUG: 2026-02-28 04:13:09,662:      pdf_renderer.py:  470: printSegment: structural | GHS
+   DEBUG: 2026-02-28 04:13:09,663:      pdf_renderer.py:  470: printSegment: _
+   DEBUG: 2026-02-28 04:13:09,664:      pdf_renderer.py:  470: printSegment: psdef |
+   DEBUG: 2026-02-28 04:13:09,665:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,666:      pdf_renderer.py:  470: printSegment: | circuit5M | 5,558,326 | 59,524,291 | 10.7 | Circuit simulation | Freescale |
+   DEBUG: 2026-02-28 04:13:09,667:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,670:      pdf_renderer.py:  470: printSegment: | cage15 |
+   DEBUG: 2026-02-28 04:13:09,672:      pdf_renderer.py:  470: printSegment: 5,154,859 | 99,199,551 | 19.2 | DNA electrophoresis | vanHeukelum |
+   DEBUG: 2026-02-28 04:13:09,673:      pdf_renderer.py:  470: printSegment: Why SuiteSparse:
+   DEBUG: 2026-02-28 04:13:09,692:      pdf_renderer.py:  470: printSegment:  These matrices cover three orders of magnitude in NNZ, include both regular (banded FEM:
+   DEBUG: 2026-02-28 04:13:09,698:      pdf_renderer.py:  470: printSegment: cant, pwtk, ldoor) and irregular (graph: webbase-1M, circuit5M, cage15) sparsity patterns, and are the standard
+   DEBUG: 2026-02-28 04:13:09,699:      pdf_renderer.py:  470: printSegment: benchmark suite for sparse linear algebra research. Citation: Davis 
+   DEBUG: 2026-02-28 04:13:09,700:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-28 04:13:09,700:      pdf_renderer.py:  470: printSegment:  Hu, 
+   DEBUG: 2026-02-28 04:13:09,701:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:09,702:      pdf_renderer.py:  470: printSegment: The University of Florida Sparse Matrix
+   DEBUG: 2026-02-28 04:13:09,702:      pdf_renderer.py:  470: printSegment: Collection,
+   DEBUG: 2026-02-28 04:13:09,703:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:09,703:      pdf_renderer.py:  470: printSegment:  ACM TOMS, 2011.
+   DEBUG: 2026-02-28 04:13:09,704:      pdf_renderer.py:  470: printSegment: 2.4 Measurement Protocol
+   DEBUG: 2026-02-28 04:13:09,705:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,706:      pdf_renderer.py:  470: printSegment: Warmup:
+   DEBUG: 2026-02-28 04:13:09,706:      pdf_renderer.py:  470: printSegment:  5 iterations (discarded)
+   DEBUG: 2026-02-28 04:13:09,707:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,708:      pdf_renderer.py:  470: printSegment: Measured:
+   DEBUG: 2026-02-28 04:13:09,708:      pdf_renderer.py:  470: printSegment:  20 iterations per matrix
+   DEBUG: 2026-02-28 04:13:09,709:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,710:      pdf_renderer.py:  470: printSegment: Timing:
+   DEBUG: 2026-02-28 04:13:09,710:      pdf_renderer.py:  470: printSegment:  CUDA events with 
+   DEBUG: 2026-02-28 04:13:09,711:      pdf_renderer.py:  470: printSegment: torch.cuda.synchronize()
+   DEBUG: 2026-02-28 04:13:09,712:      pdf_renderer.py:  470: printSegment:  barriers
+   DEBUG: 2026-02-28 04:13:09,713:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,713:      pdf_renderer.py:  470: printSegment: Metrics:
+   DEBUG: 2026-02-28 04:13:09,714:      pdf_renderer.py:  470: printSegment:  Effective bandwidth = 
+   DEBUG: 2026-02-28 04:13:09,715:      pdf_renderer.py:  470: printSegment: total_bytes_moved / time
+   DEBUG: 2026-02-28 04:13:09,716:      pdf_renderer.py:  470: printSegment: , where 
+   DEBUG: 2026-02-28 04:13:09,716:      pdf_renderer.py:  470: printSegment: total_bytes_moved
+   DEBUG: 2026-02-28 04:13:09,717:      pdf_renderer.py:  470: printSegment:  accounts for CSR arrays (
+   DEBUG: 2026-02-28 04:13:09,718:      pdf_renderer.py:  470: printSegment: values
+   DEBUG: 2026-02-28 04:13:09,718:      pdf_renderer.py:  470: printSegment: , 
+   DEBUG: 2026-02-28 04:13:09,719:      pdf_renderer.py:  470: printSegment: col_indices
+   DEBUG: 2026-02-28 04:13:09,720:      pdf_renderer.py:  470: printSegment: , 
+   DEBUG: 2026-02-28 04:13:09,721:      pdf_renderer.py:  470: printSegment: crow_indices
+   DEBUG: 2026-02-28 04:13:09,721:      pdf_renderer.py:  470: printSegment: )
+   DEBUG: 2026-02-28 04:13:09,722:      pdf_renderer.py:  470: printSegment: and the input/output vectors
+   DEBUG: 2026-02-28 04:13:09,723:      pdf_renderer.py:  470: printSegment: 2.5 Byte Count Calculation
+   DEBUG: 2026-02-28 04:13:09,724:      pdf_renderer.py:  470: printSegment: For CSR SpMV 
+   DEBUG: 2026-02-28 04:13:09,725:      pdf_renderer.py:  470: printSegment: y = A * x
+   DEBUG: 2026-02-28 04:13:09,725:      pdf_renderer.py:  470: printSegment: :
+   DEBUG: 2026-02-28 04:13:09,726:      pdf_renderer.py:  470: printSegment: bytes_moved = nnz × 4 (values, FP32)
+   DEBUG: 2026-02-28 04:13:09,727:      pdf_renderer.py:  470: printSegment:             + nnz × 8 (col_indices, INT64)
+   DEBUG: 2026-02-28 04:13:09,728:      pdf_renderer.py:  470: printSegment:             + (rows + 1) × 8 (crow_indices, INT64)
+   DEBUG: 2026-02-28 04:13:09,729:      pdf_renderer.py:  470: printSegment:             + cols × 4 (x vector, FP32)
+   DEBUG: 2026-02-28 04:13:09,730:      pdf_renderer.py:  470: printSegment:             + rows × 8 (y vector, FP32 read + write)
+   DEBUG: 2026-02-28 04:13:09,731:      pdf_renderer.py:  470: printSegment: Notes:
+   DEBUG: 2026-02-28 04:13:09,731:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-28 04:13:09,732:      pdf_renderer.py:  470: printSegment: Y-vector read+write:
+   DEBUG: 2026-02-28 04:13:09,733:      pdf_renderer.py:  470: printSegment:  The merge-based 
+   DEBUG: 2026-02-28 04:13:09,734:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:09,735:      pdf_renderer.py:  470: printSegment:  reads 
+   DEBUG: 2026-02-28 04:13:09,735:      pdf_renderer.py:  470: printSegment: y[i]
+   DEBUG: 2026-02-28 04:13:09,736:      pdf_renderer.py:  470: printSegment:  before accumulating (
+   DEBUG: 2026-02-28 04:13:09,737:      pdf_renderer.py:  470: printSegment: y[i] += val * x[col]
+   DEBUG: 2026-02-28 04:13:09,745:      pdf_renderer.py:  470: printSegment: ), requiring both a read and a write — 8 bytes per row rather than 4. This
+   DEBUG: 2026-02-28 04:13:09,747:      pdf_renderer.py:  470: printSegment: is a ~1.6% correction over write-only accounting and does not materially change any performance
+   DEBUG: 2026-02-28 04:13:09,748:      pdf_renderer.py:  470: printSegment: conclusions.
+   DEBUG: 2026-02-28 04:13:09,749:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-28 04:13:09,750:      pdf_renderer.py:  470: printSegment: INT64 indices:
+   DEBUG: 2026-02-28 04:13:09,753:      pdf_renderer.py:  470: printSegment:  PyTorch forces INT64 for sparse tensor indices regardless of matrix dimensions.
+   DEBUG: 2026-02-28 04:13:09,754:      pdf_renderer.py:  470: printSegment: This doubles the index data (col
+   DEBUG: 2026-02-28 04:13:09,755:      pdf_renderer.py:  470: printSegment: _
+   DEBUG: 2026-02-28 04:13:09,756:      pdf_renderer.py:  470: printSegment: indices and crow
+   DEBUG: 2026-02-28 04:13:09,756:      pdf_renderer.py:  470: printSegment: _
+   DEBUG: 2026-02-28 04:13:09,761:      pdf_renderer.py:  470: printSegment: indices) compared to INT32, adding ~31--33%
+   DEBUG: 2026-02-28 04:13:09,763:      pdf_renderer.py:  470: printSegment: overhead to total bytes moved. See Section 9.3 for a detailed INT32 comparison.
+   DEBUG: 2026-02-28 04:13:09,764:      pdf_renderer.py:  470: printSegment: 3. Performance Results
+   DEBUG: 2026-02-28 04:13:09,765:      pdf_renderer.py:  470: printSegment: 3.1 Timing and Throughput
+   DEBUG: 2026-02-28 04:13:09,766:      pdf_renderer.py:  470: printSegment: | Matrix | NNZ | Time (ms) | Eff. BW (GB/s) | GFLOPS | AI (FLOP/B) | % Peak BW | Gap vs Floor |
+   DEBUG: 2026-02-28 04:13:09,767:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,768:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:09,769:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,770:      pdf_renderer.py:  470: printSegment: | webbase-1M | 3.1M | 0.0411 | 1,296 | 151 | 0.117 | 27.0% | 3.7x |
+   DEBUG: 2026-02-28 04:13:09,771:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,774:      pdf_renderer.py:  470: printSegment: | cant | 4.0M | 0.0408 |
+   DEBUG: 2026-02-28 04:13:09,775:      pdf_renderer.py:  470: printSegment: 1,205 | 197 | 0.163 | 25.1% | 4.0x |
+   DEBUG: 2026-02-28 04:13:09,775:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,777:      pdf_renderer.py:  470: printSegment: | pwtk | 11.6M | 0.0663 | 2,158 | 351 | 0.163 | 44.9% | 2.2x |
+   DEBUG: 2026-02-28 04:13:09,777:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,780:      pdf_renderer.py:  470: printSegment: | ldoor | 46.5M |
+   DEBUG: 2026-02-28 04:13:09,781:      pdf_renderer.py:  470: printSegment: 0.1964 | 2,920 | 474 | 0.162 | 
+   DEBUG: 2026-02-28 04:13:09,781:      pdf_renderer.py:  470: printSegment: 60.8%
+   DEBUG: 2026-02-28 04:13:09,782:      pdf_renderer.py:  470: printSegment:  | 1.6x |
+   DEBUG: 2026-02-28 04:13:09,783:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,784:      pdf_renderer.py:  470: printSegment: | circuit5M | 59.5M | 0.3211 | 2,501 | 371 | 0.148 | 52.1% | 1.9x |
+   DEBUG: 2026-02-28 04:13:09,785:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,788:      pdf_renderer.py:  470: printSegment: | cage15
+   DEBUG: 2026-02-28 04:13:09,789:      pdf_renderer.py:  470: printSegment: | 99.2M | 0.4636 | 2,745 | 428 | 0.156 | 57.2% | 1.7x |
+   DEBUG: 2026-02-28 04:13:09,790:      pdf_renderer.py:  470: printSegment: Physical floor
+   DEBUG: 2026-02-28 04:13:09,791:      pdf_renderer.py:  470: printSegment:  = 
+   DEBUG: 2026-02-28 04:13:09,792:      pdf_renderer.py:  470: printSegment: total_bytes / peak_BW
+   DEBUG: 2026-02-28 04:13:09,793:      pdf_renderer.py:  470: printSegment: . The 
+   DEBUG: 2026-02-28 04:13:09,794:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:09,794:      pdf_renderer.py:  470: printSegment: Gap
+   DEBUG: 2026-02-28 04:13:09,795:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:09,798:      pdf_renderer.py:  470: printSegment:  column shows how many times slower the actual
+   DEBUG: 2026-02-28 04:13:09,799:      pdf_renderer.py:  470: printSegment: execution is than this theoretical minimum.
+   DEBUG: 2026-02-28 04:13:09,800:      pdf_renderer.py:  470: printSegment: 3.2 nsys Kernel Breakdown
+   DEBUG: 2026-02-28 04:13:09,801:      pdf_renderer.py:  470: printSegment: From the nsys CUDA GPU Kernel Summary (cage15):
+   DEBUG: 2026-02-28 04:13:09,802:      pdf_renderer.py:  470: printSegment: | Kernel | % GPU Time | Avg (ns) | Role |
+   DEBUG: 2026-02-28 04:13:09,803:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,804:      pdf_renderer.py:  470: printSegment: |---|---|---|---|
+   DEBUG: 2026-02-28 04:13:09,805:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,806:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:09,807:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:09,808:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:09,809:      pdf_renderer.py:  470: printSegment: 91.0%
+   DEBUG: 2026-02-28 04:13:09,810:      pdf_renderer.py:  470: printSegment:  | 438,561 | Main SpMV
+   DEBUG: 2026-02-28 04:13:09,811:      pdf_renderer.py:  470: printSegment: kernel |
+   DEBUG: 2026-02-28 04:13:09,812:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,812:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:09,813:      pdf_renderer.py:  470: printSegment: csr_partition_kernel
+   DEBUG: 2026-02-28 04:13:09,814:      pdf_renderer.py:  470: printSegment:  | 4.4% | 10,432 | Row partitioning (merge-path) |
+   DEBUG: 2026-02-28 04:13:09,815:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,815:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:09,816:      pdf_renderer.py:  470: printSegment: vector_scalar_multiply_kernel
+   DEBUG: 2026-02-28 04:13:09,816:      pdf_renderer.py:  470: printSegment:  | 2.2% | 2,582 | Vector scaling |
+   DEBUG: 2026-02-28 04:13:09,817:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,817:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:09,818:      pdf_renderer.py:  470: printSegment: vectorized_elementwise_kernel
+   DEBUG: 2026-02-28 04:13:09,819:      pdf_renderer.py:  470: printSegment:  | 2.0% | 2,490 | Output vector zero-fill |
+   DEBUG: 2026-02-28 04:13:09,820:      pdf_renderer.py:  470: printSegment: Key observation:
+   DEBUG: 2026-02-28 04:13:09,820:      pdf_renderer.py:  470: printSegment:  The 
+   DEBUG: 2026-02-28 04:13:09,821:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:09,828:      pdf_renderer.py:  470: printSegment:  dominates at 91% of total GPU time. This is the cuSPARSE
+   DEBUG: 2026-02-28 04:13:09,829:      pdf_renderer.py:  470: printSegment: merge-based CSR SpMV implementation. Auxiliary kernels (partitioning, scaling, fill) account for only 9%.
+   DEBUG: 2026-02-28 04:13:09,830:      pdf_renderer.py:  470: printSegment: 3.3 Timing Stability
+   DEBUG: 2026-02-28 04:13:09,831:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,832:      pdf_renderer.py:  470: printSegment: cant:
+   DEBUG: 2026-02-28 04:13:09,833:      pdf_renderer.py:  470: printSegment:  std = 0.0019 ms (CoV = 4.8%) -- smallest matrix, most variance
+   DEBUG: 2026-02-28 04:13:09,833:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,834:      pdf_renderer.py:  470: printSegment: cage15:
+   DEBUG: 2026-02-28 04:13:09,835:      pdf_renderer.py:  470: printSegment:  std = 0.0018 ms (CoV = 0.4%) -- largest matrix, most stable
+   DEBUG: 2026-02-28 04:13:09,836:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,837:      pdf_renderer.py:  470: printSegment: Large matrices (ldoor, circuit5M, cage15) show CoV 
+   DEBUG: 2026-02-28 04:13:09,837:      pdf_renderer.py:  470: printSegment: <
+   DEBUG: 2026-02-28 04:13:09,838:      pdf_renderer.py:  470: printSegment:  3%, confirming reliable measurements.
+   DEBUG: 2026-02-28 04:13:09,839:      pdf_renderer.py:  470: printSegment: 4. NCU Kernel Analysis
+   DEBUG: 2026-02-28 04:13:09,840:      pdf_renderer.py:  470: printSegment: 4.1 Top-Level Metrics (csrmv
+   DEBUG: 2026-02-28 04:13:09,841:      pdf_renderer.py:  470: printSegment: _
+   DEBUG: 2026-02-28 04:13:09,842:      pdf_renderer.py:  470: printSegment: v3
+   DEBUG: 2026-02-28 04:13:09,842:      pdf_renderer.py:  470: printSegment: _
+   DEBUG: 2026-02-28 04:13:09,843:      pdf_renderer.py:  470: printSegment: kernel)
+   DEBUG: 2026-02-28 04:13:09,844:      pdf_renderer.py:  470: printSegment: | Metric | cant | ldoor | cage15 |
+   DEBUG: 2026-02-28 04:13:09,844:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,845:      pdf_renderer.py:  470: printSegment: |---|---|---|---|
+   DEBUG: 2026-02-28 04:13:09,846:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,847:      pdf_renderer.py:  470: printSegment: | Block Size | (32, 1, 1) | (32, 1, 1) | (32, 1, 1) |
+   DEBUG: 2026-02-28 04:13:09,847:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,849:      pdf_renderer.py:  470: printSegment: | Grid Size | 20,872 |
+   DEBUG: 2026-02-28 04:13:09,849:      pdf_renderer.py:  470: printSegment: 242,305 | 516,665 |
+   DEBUG: 2026-02-28 04:13:09,850:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,851:      pdf_renderer.py:  470: printSegment: | Registers/Thread | 46 | 46 | 46 |
+   DEBUG: 2026-02-28 04:13:09,852:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,853:      pdf_renderer.py:  470: printSegment: | Theoretical Occupancy | 50.0% | 50.0% | 50.0% |
+   DEBUG: 2026-02-28 04:13:09,853:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,855:      pdf_renderer.py:  470: printSegment: | Achieved
+   DEBUG: 2026-02-28 04:13:09,856:      pdf_renderer.py:  470: printSegment: Occupancy | 44.0% | 47.5% | 48.0% |
+   DEBUG: 2026-02-28 04:13:09,856:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,857:      pdf_renderer.py:  470: printSegment: | Active Warps/SM | 28.17 | 30.38 | 30.70 |
+   DEBUG: 2026-02-28 04:13:09,858:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,859:      pdf_renderer.py:  470: printSegment: | SM Throughput | 52.5% | 72.5% |
+   DEBUG: 2026-02-28 04:13:09,860:      pdf_renderer.py:  470: printSegment: 69.0% |
+   DEBUG: 2026-02-28 04:13:09,861:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,862:      pdf_renderer.py:  470: printSegment: | DRAM Throughput | 43.1% | 55.8% | 54.9% |
+   DEBUG: 2026-02-28 04:13:09,862:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,863:      pdf_renderer.py:  470: printSegment: | ALU Pipeline Utilization | 51.3% | 70.6% | 66.5% |
+   DEBUG: 2026-02-28 04:13:09,864:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,866:      pdf_renderer.py:  470: printSegment: |
+   DEBUG: 2026-02-28 04:13:09,867:      pdf_renderer.py:  470: printSegment: Eligible Warps/Scheduler | 1.47 | 1.80 | 1.54 |
+   DEBUG: 2026-02-28 04:13:09,868:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,869:      pdf_renderer.py:  470: printSegment: | No Eligible Warp % | 37.9% | 26.7% | 30.5% |
+   DEBUG: 2026-02-28 04:13:09,869:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,871:      pdf_renderer.py:  470: printSegment: | CPI (Cycles Per
+   DEBUG: 2026-02-28 04:13:09,872:      pdf_renderer.py:  470: printSegment: Instruction) | 11.3 | 10.3 | 11.0 |
+   DEBUG: 2026-02-28 04:13:09,873:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,874:      pdf_renderer.py:  470: printSegment: | IPC (Instructions Per Cycle) | 2.44 | 2.93 | 2.77 |
+   DEBUG: 2026-02-28 04:13:09,875:      pdf_renderer.py:  470: printSegment: Key observations:
+   DEBUG: 2026-02-28 04:13:09,876:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,877:      pdf_renderer.py:  470: printSegment: Theoretical occupancy is 50%
+   DEBUG: 2026-02-28 04:13:09,880:      pdf_renderer.py:  470: printSegment:  (limited by block count fitting on SM; 46 registers/thread and
+   DEBUG: 2026-02-28 04:13:09,881:      pdf_renderer.py:  470: printSegment: 32-thread blocks means only 2 blocks/scheduler).
+   DEBUG: 2026-02-28 04:13:09,882:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,883:      pdf_renderer.py:  470: printSegment: Achieved occupancy
+   DEBUG: 2026-02-28 04:13:09,884:      pdf_renderer.py:  470: printSegment:  reaches 44--48% of this 50% theoretical maximum.
+   DEBUG: 2026-02-28 04:13:09,885:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,885:      pdf_renderer.py:  470: printSegment: No Eligible Warp
+   DEBUG: 2026-02-28 04:13:09,888:      pdf_renderer.py:  470: printSegment:  events occur 27--38% of the time — meaning warp schedulers frequently have no
+   DEBUG: 2026-02-28 04:13:09,889:      pdf_renderer.py:  470: printSegment: ready warp to issue.
+   DEBUG: 2026-02-28 04:13:09,890:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,891:      pdf_renderer.py:  470: printSegment: CPI of 10.3--11.3
+   DEBUG: 2026-02-28 04:13:09,892:      pdf_renderer.py:  470: printSegment:  is very high (an efficient kernel would be ~4 CPI), indicating significant stalling.
+   DEBUG: 2026-02-28 04:13:09,893:      pdf_renderer.py:  470: printSegment: 4.2 Warp Stall Breakdown
+   DEBUG: 2026-02-28 04:13:09,894:      pdf_renderer.py:  470: printSegment: From NCU raw metrics (
+   DEBUG: 2026-02-28 04:13:09,895:      pdf_renderer.py:  470: printSegment: smsp__average_warps_issue_stalled_*_per_issue_active.ratio
+   DEBUG: 2026-02-28 04:13:09,896:      pdf_renderer.py:  470: printSegment: ):
+   DEBUG: 2026-02-28 04:13:09,897:      pdf_renderer.py:  470: printSegment: | Stall Reason | cant | ldoor | cage15 | Interpretation |
+   DEBUG: 2026-02-28 04:13:09,898:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,899:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:09,900:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,901:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:09,902:      pdf_renderer.py:  470: printSegment: Long Scoreboard (L1TEX)
+   DEBUG: 2026-02-28 04:13:09,903:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:09,904:      pdf_renderer.py:  470: printSegment: 4.25 (37.6%)
+   DEBUG: 2026-02-28 04:13:09,904:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:09,905:      pdf_renderer.py:  470: printSegment: 3.41 (33.0%)
+   DEBUG: 2026-02-28 04:13:09,906:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:09,907:      pdf_renderer.py:  470: printSegment: 4.23 (38.4%)
+   DEBUG: 2026-02-28 04:13:09,908:      pdf_renderer.py:  470: printSegment:  | Waiting for global/local memory loads |
+   DEBUG: 2026-02-28 04:13:09,909:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,912:      pdf_renderer.py:  470: printSegment: | Wait | 1.82 (16.1%) | 1.84 (17.8%) | 1.87
+   DEBUG: 2026-02-28 04:13:09,913:      pdf_renderer.py:  470: printSegment: (17.0%) | Fixed-latency pipeline results |
+   DEBUG: 2026-02-28 04:13:09,914:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,916:      pdf_renderer.py:  470: printSegment: | Short Scoreboard | 1.16 (10.3%) | 1.13 (11.0%) | 1.35 (12.2%) | Shared
+   DEBUG: 2026-02-28 04:13:09,917:      pdf_renderer.py:  470: printSegment: memory dependencies |
+   DEBUG: 2026-02-28 04:13:09,918:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,920:      pdf_renderer.py:  470: printSegment: | Not Selected | 1.38 (12.2%) | 1.46 (14.1%) | 1.22 (11.1%) | Ready but scheduler picked
+   DEBUG: 2026-02-28 04:13:09,921:      pdf_renderer.py:  470: printSegment: another warp |
+   DEBUG: 2026-02-28 04:13:09,922:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,923:      pdf_renderer.py:  470: printSegment: | Selected (issuing) | 1.00 (8.9%) | 1.00 (9.7%) | 1.00 (9.1%) | Actually executing |
+   DEBUG: 2026-02-28 04:13:09,924:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,928:      pdf_renderer.py:  470: printSegment: | Math Pipe
+   DEBUG: 2026-02-28 04:13:09,930:      pdf_renderer.py:  470: printSegment: Throttle | 0.83 (7.4%) | 0.87 (8.4%) | 0.72 (6.5%) | ALU pipeline backpressure |
+   DEBUG: 2026-02-28 04:13:09,930:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,935:      pdf_renderer.py:  470: printSegment: | Other (combined) | 0.85 (7.5%) |
+   DEBUG: 2026-02-28 04:13:09,936:      pdf_renderer.py:  470: printSegment: 0.62 (6.0%) | 0.64 (5.7%) | branch resolving, drain, dispatch, etc. |
+   DEBUG: 2026-02-28 04:13:09,937:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,938:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:09,939:      pdf_renderer.py:  470: printSegment: Total CPI
+   DEBUG: 2026-02-28 04:13:09,940:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:09,941:      pdf_renderer.py:  470: printSegment: 11.3
+   DEBUG: 2026-02-28 04:13:09,941:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:09,942:      pdf_renderer.py:  470: printSegment: 10.3
+   DEBUG: 2026-02-28 04:13:09,943:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:09,944:      pdf_renderer.py:  470: printSegment: 11.0
+   DEBUG: 2026-02-28 04:13:09,945:      pdf_renderer.py:  470: printSegment:  | |
+   DEBUG: 2026-02-28 04:13:09,946:      pdf_renderer.py:  470: printSegment: The dominant stall is Long Scoreboard at 33--38%
+   DEBUG: 2026-02-28 04:13:09,951:      pdf_renderer.py:  470: printSegment:  — this is the warp waiting for a scoreboard dependency on an
+   DEBUG: 2026-02-28 04:13:09,952:      pdf_renderer.py:  470: printSegment: L1TEX (global memory) operation. The NCU rule explicitly states:
+   DEBUG: 2026-02-28 04:13:09,954:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:09,961:      pdf_renderer.py:  470: printSegment: On average, each warp of this workload spends 3.4--4.2 cycles being stalled waiting for a
+   DEBUG: 2026-02-28 04:13:09,963:      pdf_renderer.py:  470: printSegment: scoreboard dependency on a L1TEX (local, global, surface, texture) operation.
+   DEBUG: 2026-02-28 04:13:09,964:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:09,965:      pdf_renderer.py:  470: printSegment: This directly confirms the 
+   DEBUG: 2026-02-28 04:13:09,966:      pdf_renderer.py:  470: printSegment: dependent load chain
+   DEBUG: 2026-02-28 04:13:09,968:      pdf_renderer.py:  470: printSegment:  in CSR SpMV as the primary bottleneck.
+   DEBUG: 2026-02-28 04:13:09,969:      pdf_renderer.py:  470: printSegment: 4.3 Memory Access Efficiency
+   DEBUG: 2026-02-28 04:13:09,970:      pdf_renderer.py:  470: printSegment: | Metric | cant | ldoor | cage15 |
+   DEBUG: 2026-02-28 04:13:09,971:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,972:      pdf_renderer.py:  470: printSegment: |---|---|---|---|
+   DEBUG: 2026-02-28 04:13:09,972:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,973:      pdf_renderer.py:  470: printSegment: | Global Load Coalescing | 24.5/32 bytes | 25.8/32 bytes | 15.9/32 bytes |
+   DEBUG: 2026-02-28 04:13:09,974:      pdf_renderer.py:  470: printSegment: | Excessive Sectors (%) | 22% | 18% | 
+   DEBUG: 2026-02-28 04:13:09,975:      pdf_renderer.py:  470: printSegment: 49%
+   DEBUG: 2026-02-28 04:13:09,976:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:09,976:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,978:      pdf_renderer.py:  470: printSegment: | Shared Load Bank Conflicts | 1.8-way (39%) | 1.8-way (38%) |
+   DEBUG: 2026-02-28 04:13:09,979:      pdf_renderer.py:  470: printSegment: 1.7-way (35%) |
+   DEBUG: 2026-02-28 04:13:09,979:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,980:      pdf_renderer.py:  470: printSegment: | Shared Store Bank Conflicts | -- | 1.3-way (11%) | 1.3-way (13%) |
+   DEBUG: 2026-02-28 04:13:09,981:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:09,981:      pdf_renderer.py:  470: printSegment: | L2 Compression | 0% | 0% |
+   DEBUG: 2026-02-28 04:13:09,982:      pdf_renderer.py:  470: printSegment: 0% |
+   DEBUG: 2026-02-28 04:13:09,983:      pdf_renderer.py:  470: printSegment: cage15 has 49% excessive sectors
+   DEBUG: 2026-02-28 04:13:09,984:      pdf_renderer.py:  470: printSegment:  due to its irregular sparsity pattern (DNA electrophoresis). The 
+   DEBUG: 2026-02-28 04:13:09,984:      pdf_renderer.py:  470: printSegment: x[col_indices[j]]
+   DEBUG: 2026-02-28 04:13:09,986:      pdf_renderer.py:  470: printSegment:  accesses are indirect and scattered, causing poor spatial locality and wasted bandwidth.
+   DEBUG: 2026-02-28 04:13:09,987:      pdf_renderer.py:  470: printSegment: 4.4 NCU Rule Summary
+   DEBUG: 2026-02-28 04:13:09,988:      pdf_renderer.py:  470: printSegment: The NCU automated analysis rules provide additional insights:
+   DEBUG: 2026-02-28 04:13:09,989:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:09,990:      pdf_renderer.py:  470: printSegment: cage15 — SOL Bottleneck:
+   DEBUG: 2026-02-28 04:13:10,001:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,001:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,003:      pdf_renderer.py:  470: printSegment: This workload is utilizing greater than 80.0% of the available compute or
+   DEBUG: 2026-02-28 04:13:10,004:      pdf_renderer.py:  470: printSegment: memory performance.
+   DEBUG: 2026-02-28 04:13:10,005:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,006:      pdf_renderer.py:  470: printSegment:  (SM throughput reaches 69%)
+   DEBUG: 2026-02-28 04:13:10,006:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,007:      pdf_renderer.py:  470: printSegment: cant — SOL Bottleneck:
+   DEBUG: 2026-02-28 04:13:10,008:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,008:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,011:      pdf_renderer.py:  470: printSegment: Low compute throughput and memory bandwidth utilization relative to peak.
+   DEBUG: 2026-02-28 04:13:10,012:      pdf_renderer.py:  470: printSegment: Typically indicates latency issues.
+   DEBUG: 2026-02-28 04:13:10,013:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,014:      pdf_renderer.py:  470: printSegment:  (Small grid cannot saturate the GPU)
+   DEBUG: 2026-02-28 04:13:10,014:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,015:      pdf_renderer.py:  470: printSegment: ldoor — SOL Bottleneck:
+   DEBUG: 2026-02-28 04:13:10,016:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,016:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,017:      pdf_renderer.py:  470: printSegment: Compute and Memory are well-balanced.
+   DEBUG: 2026-02-28 04:13:10,018:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,019:      pdf_renderer.py:  470: printSegment:  (Best utilization case)
+   DEBUG: 2026-02-28 04:13:10,019:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,020:      pdf_renderer.py:  470: printSegment: All matrices — Occupancy:
+   DEBUG: 2026-02-28 04:13:10,021:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,022:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,024:      pdf_renderer.py:  470: printSegment: Theoretical occupancy (50.0%) is limited by the number of blocks that
+   DEBUG: 2026-02-28 04:13:10,025:      pdf_renderer.py:  470: printSegment: can fit on the SM.
+   DEBUG: 2026-02-28 04:13:10,026:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,027:      pdf_renderer.py:  470: printSegment: 4.5 Baseline Validation
+   DEBUG: 2026-02-28 04:13:10,027:      pdf_renderer.py:  470: printSegment: The cuSPARSE 
+   DEBUG: 2026-02-28 04:13:10,028:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:10,029:      pdf_renderer.py:  470: printSegment:  represents a 
+   DEBUG: 2026-02-28 04:13:10,030:      pdf_renderer.py:  470: printSegment: strong, well-optimized baseline
+   DEBUG: 2026-02-28 04:13:10,031:      pdf_renderer.py:  470: printSegment:  for CSR SpMV:
+   DEBUG: 2026-02-28 04:13:10,031:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,032:      pdf_renderer.py:  470: printSegment: Kernel identity:
+   DEBUG: 2026-02-28 04:13:10,033:      pdf_renderer.py:  470: printSegment:  Confirmed as the merge-based CSR SpMV algorithm (Merrill 
+   DEBUG: 2026-02-28 04:13:10,034:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-28 04:13:10,035:      pdf_renderer.py:  470: printSegment:  Garland, PPoPP
+   DEBUG: 2026-02-28 04:13:10,036:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,038:      pdf_renderer.py:  470: printSegment: 16), which is the state-of-the-art for general CSR matrices.
+   DEBUG: 2026-02-28 04:13:10,038:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,039:      pdf_renderer.py:  470: printSegment: cuSPARSE backend:
+   DEBUG: 2026-02-28 04:13:10,040:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,041:      pdf_renderer.py:  470: printSegment: torch.sparse.mm
+   DEBUG: 2026-02-28 04:13:10,042:      pdf_renderer.py:  470: printSegment:  dispatches to cuSPARSE
+   DEBUG: 2026-02-28 04:13:10,042:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,043:      pdf_renderer.py:  470: printSegment: s 
+   DEBUG: 2026-02-28 04:13:10,044:      pdf_renderer.py:  470: printSegment: cusparseSpMV()
+   DEBUG: 2026-02-28 04:13:10,045:      pdf_renderer.py:  470: printSegment:  —
+   DEBUG: 2026-02-28 04:13:10,046:      pdf_renderer.py:  470: printSegment: verified via nsys kernel traces showing 
+   DEBUG: 2026-02-28 04:13:10,047:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:10,048:      pdf_renderer.py:  470: printSegment: .
+   DEBUG: 2026-02-28 04:13:10,049:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,050:      pdf_renderer.py:  470: printSegment: Block size (32 threads):
+   DEBUG: 2026-02-28 04:13:10,052:      pdf_renderer.py:  470: printSegment:  Expected for the merge-based algorithm, which assigns one warp per
+   DEBUG: 2026-02-28 04:13:10,052:      pdf_renderer.py:  470: printSegment: merge-path partition.
+   DEBUG: 2026-02-28 04:13:10,053:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,054:      pdf_renderer.py:  470: printSegment: Register count (46/thread):
+   DEBUG: 2026-02-28 04:13:10,055:      pdf_renderer.py:  470: printSegment:  Consistent with the algorithm
+   DEBUG: 2026-02-28 04:13:10,056:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,059:      pdf_renderer.py:  470: printSegment: s need to track merge-path coordinates,
+   DEBUG: 2026-02-28 04:13:10,060:      pdf_renderer.py:  470: printSegment: accumulate partial sums, and handle row boundaries.
+   DEBUG: 2026-02-28 04:13:10,061:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,062:      pdf_renderer.py:  470: printSegment: Theoretical occupancy (50%):
+   DEBUG: 2026-02-28 04:13:10,100:      pdf_renderer.py:  470: printSegment:  Limited by block count fitting on SM. With 46 registers × 32
+   DEBUG: 2026-02-28 04:13:10,123:      pdf_renderer.py:  470: printSegment: threads = 1,472 registers per block, and 65,536 registers per SM, up to 44 blocks could fit by register
+   DEBUG: 2026-02-28 04:13:10,131:      pdf_renderer.py:  470: printSegment: count. However, with 32 threads/block and 2,048 max threads/SM, only 64 blocks fit, and with 4
+   DEBUG: 2026-02-28 04:13:10,133:      pdf_renderer.py:  470: printSegment: warp schedulers the effective limit is 2 active blocks per scheduler = 50% occupancy.
+   DEBUG: 2026-02-28 04:13:10,133:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,135:      pdf_renderer.py:  470: printSegment: Merge-based algorithm advantages:
+   DEBUG: 2026-02-28 04:13:10,146:      pdf_renderer.py:  470: printSegment:  Unlike simpler row-per-warp approaches, the merge-based
+   DEBUG: 2026-02-28 04:13:10,151:      pdf_renderer.py:  470: printSegment: algorithm achieves load-balanced work distribution regardless of row-length variance, which is
+   DEBUG: 2026-02-28 04:13:10,152:      pdf_renderer.py:  470: printSegment: critical for irregular matrices like circuit5M and cage15.
+   DEBUG: 2026-02-28 04:13:10,153:      pdf_renderer.py:  470: printSegment: Conclusion:
+   DEBUG: 2026-02-28 04:13:10,159:      pdf_renderer.py:  470: printSegment:  Performance gaps identified in this report are due to fundamental hardware-workload mismatches
+   DEBUG: 2026-02-28 04:13:10,161:      pdf_renderer.py:  470: printSegment: (latency-bandwidth deficit, dependent load chain), not suboptimal kernel implementation.
+   DEBUG: 2026-02-28 04:13:10,163:      pdf_renderer.py:  470: printSegment: 5. First-Principles Analysis
+   DEBUG: 2026-02-28 04:13:10,164:      pdf_renderer.py:  470: printSegment: 5.1 Physical Floor
+   DEBUG: 2026-02-28 04:13:10,165:      pdf_renderer.py:  470: printSegment: The 
+   DEBUG: 2026-02-28 04:13:10,166:      pdf_renderer.py:  470: printSegment: physical floor
+   DEBUG: 2026-02-28 04:13:10,167:      pdf_renderer.py:  470: printSegment:  is the absolute minimum execution time if the GPU could deliver peak bandwidth with zero
+   DEBUG: 2026-02-28 04:13:10,168:      pdf_renderer.py:  470: printSegment: overhead:
+   DEBUG: 2026-02-28 04:13:10,170:      pdf_renderer.py:  470: printSegment: physical_floor = total_bytes_moved / peak_BW
+   DEBUG: 2026-02-28 04:13:10,171:      pdf_renderer.py:  470: printSegment: For SpMV, arithmetic intensity ranges from 0.117 to 0.163 FLOP/byte, while the H200
+   DEBUG: 2026-02-28 04:13:10,172:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,173:      pdf_renderer.py:  470: printSegment: s ridge point is:
+   DEBUG: 2026-02-28 04:13:10,175:      pdf_renderer.py:  470: printSegment: ridge_point = peak_FLOPS / peak_BW = 66,900 GFLOPS / 4,800 GB/s =
+   DEBUG: 2026-02-28 04:13:10,176:      pdf_renderer.py:  470: printSegment: 13.9 FLOP/byte
+   DEBUG: 2026-02-28 04:13:10,176:      pdf_renderer.py:  470: printSegment: SpMV
+   DEBUG: 2026-02-28 04:13:10,177:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,178:      pdf_renderer.py:  470: printSegment: s AI is 
+   DEBUG: 2026-02-28 04:13:10,178:      pdf_renderer.py:  470: printSegment: 85--119x below the ridge point
+   DEBUG: 2026-02-28 04:13:10,179:      pdf_renderer.py:  470: printSegment:  — it is deeply, fundamentally 
+   DEBUG: 2026-02-28 04:13:10,180:      pdf_renderer.py:  470: printSegment: memory-bound
+   DEBUG: 2026-02-28 04:13:10,183:      pdf_renderer.py:  470: printSegment: . Performance is
+   DEBUG: 2026-02-28 04:13:10,183:      pdf_renderer.py:  470: printSegment: determined entirely by how much bandwidth the GPU can sustain.
+   DEBUG: 2026-02-28 04:13:10,184:      pdf_renderer.py:  470: printSegment: | Matrix | Bytes (MB) | Floor (ms) | Actual (ms) | Gap | % Peak BW |
+   DEBUG: 2026-02-28 04:13:10,185:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,186:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:10,186:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,188:      pdf_renderer.py:  470: printSegment: | webbase-1M | 53.3 |
+   DEBUG: 2026-02-28 04:13:10,189:      pdf_renderer.py:  470: printSegment: 0.0111 | 0.0411 | 3.7x | 27.0% |
+   DEBUG: 2026-02-28 04:13:10,189:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,190:      pdf_renderer.py:  470: printSegment: | cant | 49.1 | 0.0102 | 0.0408 | 4.0x | 25.1% |
+   DEBUG: 2026-02-28 04:13:10,191:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,192:      pdf_renderer.py:  470: printSegment: | pwtk | 143.1 | 0.0298 | 0.0663 | 2.2x |
+   DEBUG: 2026-02-28 04:13:10,192:      pdf_renderer.py:  470: printSegment: 44.9% |
+   DEBUG: 2026-02-28 04:13:10,193:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,194:      pdf_renderer.py:  470: printSegment: | ldoor | 573.5 | 0.1195 | 0.1964 | 1.6x | 60.8% |
+   DEBUG: 2026-02-28 04:13:10,194:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,195:      pdf_renderer.py:  470: printSegment: | circuit5M | 803.2 | 0.1673 | 0.3211 | 1.9x | 52.1% |
+   DEBUG: 2026-02-28 04:13:10,196:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,197:      pdf_renderer.py:  470: printSegment: | cage15 |
+   DEBUG: 2026-02-28 04:13:10,198:      pdf_renderer.py:  470: printSegment: 1,272.9 | 0.2652 | 0.4636 | 1.7x | 57.2% |
+   DEBUG: 2026-02-28 04:13:10,199:      pdf_renderer.py:  470: printSegment: 5.2 Arithmetic Intensity
+   DEBUG: 2026-02-28 04:13:10,200:      pdf_renderer.py:  470: printSegment: SpMV
+   DEBUG: 2026-02-28 04:13:10,201:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,201:      pdf_renderer.py:  470: printSegment: s arithmetic intensity is fundamentally low:
+   DEBUG: 2026-02-28 04:13:10,202:      pdf_renderer.py:  470: printSegment: AI = 2 × NNZ / total_bytes_moved
+   DEBUG: 2026-02-28 04:13:10,212:      pdf_renderer.py:  470: printSegment: All matrices have AI between 0.12 and 0.16 FLOP/byte. The variation comes from the ratio of index overhead
+   DEBUG: 2026-02-28 04:13:10,213:      pdf_renderer.py:  470: printSegment: (INT64) to useful data (FP32 values + x/y vectors), which depends on the NNZ-to-dimension ratio.
+   DEBUG: 2026-02-28 04:13:10,214:      pdf_renderer.py:  470: printSegment: 5.3 Little
+   DEBUG: 2026-02-28 04:13:10,214:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,215:      pdf_renderer.py:  470: printSegment: s Law Analysis
+   DEBUG: 2026-02-28 04:13:10,216:      pdf_renderer.py:  470: printSegment: Little
+   DEBUG: 2026-02-28 04:13:10,216:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,217:      pdf_renderer.py:  470: printSegment: s Law
+   DEBUG: 2026-02-28 04:13:10,218:      pdf_renderer.py:  470: printSegment:  for memory systems states:
+   DEBUG: 2026-02-28 04:13:10,219:      pdf_renderer.py:  470: printSegment: achieved_BW = outstanding_bytes / latency
+   DEBUG: 2026-02-28 04:13:10,220:      pdf_renderer.py:  470: printSegment: To achieve peak bandwidth, the GPU needs:
+   DEBUG: 2026-02-28 04:13:10,221:      pdf_renderer.py:  470: printSegment: required_outstanding_bytes = peak_BW × DRAM_latency
+   DEBUG: 2026-02-28 04:13:10,222:      pdf_renderer.py:  470: printSegment:                            = 4,800 GB/s × 300 ns
+   DEBUG: 2026-02-28 04:13:10,223:      pdf_renderer.py:  470: printSegment:                            = 1,440,000 bytes = 1.44 MB
+   DEBUG: 2026-02-28 04:13:10,223:      pdf_renderer.py:  470: printSegment: Distributed across 132 SMs:
+   DEBUG: 2026-02-28 04:13:10,224:      pdf_renderer.py:  470: printSegment: per_SM = 1,440,000 / 132 = 10,909 bytes/SM
+   DEBUG: 2026-02-28 04:13:10,226:      pdf_renderer.py:  470: printSegment: Each warp can have one outstanding 128-byte cache-line request at a time:
+   DEBUG: 2026-02-28 04:13:10,227:      pdf_renderer.py:  470: printSegment: required_warps/SM = 10,909 / 128 = 85.2 warps/SM
+   DEBUG: 2026-02-28 04:13:10,228:      pdf_renderer.py:  470: printSegment: But the H200 hardware maximum is 64 warps/SM.
+   DEBUG: 2026-02-28 04:13:10,229:      pdf_renderer.py:  470: printSegment: Even at 100% occupancy:
+   DEBUG: 2026-02-28 04:13:10,230:      pdf_renderer.py:  470: printSegment: max_achievable_BW = (64 / 85.2) × 4,800 = 75.1% × 4,800 = 3,605 GB/s
+   DEBUG: 2026-02-28 04:13:10,231:      pdf_renderer.py:  470: printSegment: DRAM Latency Sensitivity Analysis
+   DEBUG: 2026-02-28 04:13:10,233:      pdf_renderer.py:  470: printSegment: The exact DRAM latency for HBM3e under SpMV access patterns is uncertain. NVIDIA GH200 documentation
+   DEBUG: 2026-02-28 04:13:10,234:      pdf_renderer.py:  470: printSegment: cites 
+   DEBUG: 2026-02-28 04:13:10,234:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,235:      pdf_renderer.py:  470: printSegment: under 300 ns
+   DEBUG: 2026-02-28 04:13:10,236:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,240:      pdf_renderer.py:  470: printSegment:  for HBM3e; we use 300 ns as a conservative primary estimate. The following table shows how
+   DEBUG: 2026-02-28 04:13:10,241:      pdf_renderer.py:  470: printSegment: the analysis changes across plausible latency values:
+   DEBUG: 2026-02-28 04:13:10,242:      pdf_renderer.py:  470: printSegment: | DRAM Latency | Required Warps/SM | Little
+   DEBUG: 2026-02-28 04:13:10,243:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,244:      pdf_renderer.py:  470: printSegment: s Law Ceiling | Dep-Chain Ceiling | Closest Match |
+   DEBUG: 2026-02-28 04:13:10,245:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,246:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:10,247:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,248:      pdf_renderer.py:  470: printSegment: |
+   DEBUG: 2026-02-28 04:13:10,248:      pdf_renderer.py:  470: printSegment: 200 ns | 56.8 | 
+   DEBUG: 2026-02-28 04:13:10,249:      pdf_renderer.py:  470: printSegment: 100%
+   DEBUG: 2026-02-28 04:13:10,250:      pdf_renderer.py:  470: printSegment:  (4,800 GB/s) | 56.3% (2,703 GB/s) | — |
+   DEBUG: 2026-02-28 04:13:10,251:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,252:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:10,253:      pdf_renderer.py:  470: printSegment: 300 ns
+   DEBUG: 2026-02-28 04:13:10,253:      pdf_renderer.py:  470: printSegment:  (primary) | 
+   DEBUG: 2026-02-28 04:13:10,254:      pdf_renderer.py:  470: printSegment: 85.2
+   DEBUG: 2026-02-28 04:13:10,255:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:10,256:      pdf_renderer.py:  470: printSegment: 75.1%
+   DEBUG: 2026-02-28 04:13:10,257:      pdf_renderer.py:  470: printSegment:  (3,605 GB/s) | 
+   DEBUG: 2026-02-28 04:13:10,257:      pdf_renderer.py:  470: printSegment: 37.5%
+   DEBUG: 2026-02-28 04:13:10,258:      pdf_renderer.py:  470: printSegment: 
+   DEBUG: 2026-02-28 04:13:10,259:      pdf_renderer.py:  470: printSegment: (1,802 GB/s) | — |
+   DEBUG: 2026-02-28 04:13:10,260:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,261:      pdf_renderer.py:  470: printSegment: | 400 ns | 113.6 | 56.3% (2,703 GB/s) | 28.2% (1,352 GB/s) | ldoor at 60.8% |
+   DEBUG: 2026-02-28 04:13:10,262:      pdf_renderer.py:  470: printSegment: Interpretation:
+   DEBUG: 2026-02-28 04:13:10,334:      pdf_renderer.py:  470: printSegment:  Our best measurement (ldoor at 60.8%) falls between the 300 ns ceiling (75.1%) and the 400 ns
+   DEBUG: 2026-02-28 04:13:10,380:      pdf_renderer.py:  470: printSegment: ceiling (56.3%). This is consistent with: (a) effective DRAM latency in the 300--400 ns range for SpMV access
+   DEBUG: 2026-02-28 04:13:10,404:      pdf_renderer.py:  470: printSegment: patterns, (b) the merge-based algorithm achieving partial overlap that narrows the gap from the theoretical ceiling,
+   DEBUG: 2026-02-28 04:13:10,411:      pdf_renderer.py:  470: printSegment: and (c) L2 cache hits on portions of the x-vector reducing effective latency. The 300 ns primary estimate is
+   DEBUG: 2026-02-28 04:13:10,412:      pdf_renderer.py:  470: printSegment: conservative — the actual latency may be somewhat higher under SpMV
+   DEBUG: 2026-02-28 04:13:10,413:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,413:      pdf_renderer.py:  470: printSegment: s irregular access pattern.
+   DEBUG: 2026-02-28 04:13:10,414:      pdf_renderer.py:  470: printSegment: 5.4 The Dependent Load Chain Penalty
+   DEBUG: 2026-02-28 04:13:10,415:      pdf_renderer.py:  470: printSegment: The CSR SpMV inner loop contains a 
+   DEBUG: 2026-02-28 04:13:10,416:      pdf_renderer.py:  470: printSegment: dependent load chain
+   DEBUG: 2026-02-28 04:13:10,417:      pdf_renderer.py:  470: printSegment: :
+   DEBUG: 2026-02-28 04:13:10,418:      pdf_renderer.py:  470: printSegment: for (int j = row_ptr[i]; j < row_ptr[i+1]; j++) {
+   DEBUG: 2026-02-28 04:13:10,419:      pdf_renderer.py:  470: printSegment:     int col = col_indices[j];       // LOAD 1: fetch column index
+   DEBUG: 2026-02-28 04:13:10,420:      pdf_renderer.py:  470: printSegment: (streaming)
+   DEBUG: 2026-02-28 04:13:10,421:      pdf_renderer.py:  470: printSegment:     float xval = x[col];            // LOAD 2: DEPENDENT on LOAD 1
+   DEBUG: 2026-02-28 04:13:10,422:      pdf_renderer.py:  470: printSegment: result
+   DEBUG: 2026-02-28 04:13:10,423:      pdf_renderer.py:  470: printSegment:     y[i] += values[j] * xval;       // FMA (DEPENDENT on LOAD 2)
+   DEBUG: 2026-02-28 04:13:10,423:      pdf_renderer.py:  470: printSegment: }
+   DEBUG: 2026-02-28 04:13:10,424:      pdf_renderer.py:  470: printSegment: LOAD 2 cannot issue until LOAD 1 completes
+   DEBUG: 2026-02-28 04:13:10,425:      pdf_renderer.py:  470: printSegment:  — the address of 
+   DEBUG: 2026-02-28 04:13:10,426:      pdf_renderer.py:  470: printSegment: x[col]
+   DEBUG: 2026-02-28 04:13:10,426:      pdf_renderer.py:  470: printSegment:  is unknown until 
+   DEBUG: 2026-02-28 04:13:10,427:      pdf_renderer.py:  470: printSegment: col_indices[j]
+   DEBUG: 2026-02-28 04:13:10,428:      pdf_renderer.py:  470: printSegment: 
+   DEBUG: 2026-02-28 04:13:10,429:      pdf_renderer.py:  470: printSegment: returns from memory. This creates a serial chain:
+   DEBUG: 2026-02-28 04:13:10,430:      pdf_renderer.py:  470: printSegment: Issue LOAD 1 (col_indices[j])
+   DEBUG: 2026-02-28 04:13:10,431:      pdf_renderer.py:  470: printSegment:     ↓ wait ~300 ns (if DRAM miss)
+   DEBUG: 2026-02-28 04:13:10,442:      pdf_renderer.py:  470: printSegment: Receive col → compute &x[col]
+   DEBUG: 2026-02-28 04:13:10,443:      pdf_renderer.py:  470: printSegment: Issue LOAD 2 (x[col])
+   DEBUG: 2026-02-28 04:13:10,444:      pdf_renderer.py:  470: printSegment:     ↓ wait ~300 ns (data-dependent)
+   DEBUG: 2026-02-28 04:13:10,444:      pdf_renderer.py:  470: printSegment: Receive x[col] → FMA
+   DEBUG: 2026-02-28 04:13:10,445:      pdf_renderer.py:  470: printSegment: Each warp is effectively 
+   DEBUG: 2026-02-28 04:13:10,446:      pdf_renderer.py:  470: printSegment: half-utilized
+   DEBUG: 2026-02-28 04:13:10,452:      pdf_renderer.py:  470: printSegment:  for memory-level parallelism (MLP), because it can sustain only one of the
+   DEBUG: 2026-02-28 04:13:10,453:      pdf_renderer.py:  470: printSegment: two loads at a time. This halves the effective outstanding memory requests:
+   DEBUG: 2026-02-28 04:13:10,455:      pdf_renderer.py:  470: printSegment: Without dep chain: effective_warps = 64/SM → ceiling = 64/85.2 =
+   DEBUG: 2026-02-28 04:13:10,456:      pdf_renderer.py:  470: printSegment: 75.1% peak BW
+   DEBUG: 2026-02-28 04:13:10,458:      pdf_renderer.py:  470: printSegment: With dep chain:    effective_warps = 32/SM → ceiling = 32/85.2 =
+   DEBUG: 2026-02-28 04:13:10,458:      pdf_renderer.py:  470: printSegment: 37.5% peak BW
+   DEBUG: 2026-02-28 04:13:10,459:      pdf_renderer.py:  470: printSegment: But cuSPARSE
+   DEBUG: 2026-02-28 04:13:10,460:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,460:      pdf_renderer.py:  470: printSegment: s 
+   DEBUG: 2026-02-28 04:13:10,461:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:10,464:      pdf_renderer.py:  470: printSegment:  only achieves 50% theoretical occupancy (46 regs/thread, block size 32),
+   DEBUG: 2026-02-28 04:13:10,465:      pdf_renderer.py:  470: printSegment: further reducing effective warps:
+   DEBUG: 2026-02-28 04:13:10,466:      pdf_renderer.py:  470: printSegment: Actual occupancy: ~48% → ~30.7 active warps/SM
+   DEBUG: 2026-02-28 04:13:10,467:      pdf_renderer.py:  470: printSegment: With dep chain:   ~15.3 effective warps/SM
+   DEBUG: 2026-02-28 04:13:10,468:      pdf_renderer.py:  470: printSegment: Naive ceiling:    15.3/85.2 = 18.0% peak BW
+   DEBUG: 2026-02-28 04:13:10,469:      pdf_renderer.py:  470: printSegment: Why ldoor Exceeds the Naive Dep-Chain Ceiling
+   DEBUG: 2026-02-28 04:13:10,469:      pdf_renderer.py:  470: printSegment: The measured best is 
+   DEBUG: 2026-02-28 04:13:10,470:      pdf_renderer.py:  470: printSegment: 60.8% (ldoor)
+   DEBUG: 2026-02-28 04:13:10,471:      pdf_renderer.py:  470: printSegment: , significantly above the naive dep-chain ceiling of 18.0%. This is 
+   DEBUG: 2026-02-28 04:13:10,472:      pdf_renderer.py:  470: printSegment: not an error
+   DEBUG: 2026-02-28 04:13:10,489:      pdf_renderer.py:  470: printSegment: 
+   DEBUG: 2026-02-28 04:13:10,500:      pdf_renderer.py:  470: printSegment: — the naive model is a simplified lower bound that assumes: (a) each warp processes one row at a time with a strict
+   DEBUG: 2026-02-28 04:13:10,502:      pdf_renderer.py:  470: printSegment: load→load→FMA serial chain, and (b) all loads miss to DRAM. The real kernel substantially exceeds this because:
+   DEBUG: 2026-02-28 04:13:10,503:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-28 04:13:10,504:      pdf_renderer.py:  470: printSegment: Merge-based algorithm enables iteration-level parallelism.
+   DEBUG: 2026-02-28 04:13:10,505:      pdf_renderer.py:  470: printSegment:  The 
+   DEBUG: 2026-02-28 04:13:10,505:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:10,508:      pdf_renderer.py:  470: printSegment:  partitions
+   DEBUG: 2026-02-28 04:13:10,509:      pdf_renderer.py:  470: printSegment: work by merge-path, not row-per-warp. Each warp processes multiple rows
+   DEBUG: 2026-02-28 04:13:10,510:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,515:      pdf_renderer.py:  470: printSegment:  nonzeros in sequence.
+   DEBUG: 2026-02-28 04:13:10,516:      pdf_renderer.py:  470: printSegment: The instruction-level parallelism (ILP) within the merge-path loop allows loads from iteration 
+   DEBUG: 2026-02-28 04:13:10,517:      pdf_renderer.py:  470: printSegment: j+1
+   DEBUG: 2026-02-28 04:13:10,518:      pdf_renderer.py:  470: printSegment: 
+   DEBUG: 2026-02-28 04:13:10,519:      pdf_renderer.py:  470: printSegment: to overlap with computation from iteration 
+   DEBUG: 2026-02-28 04:13:10,520:      pdf_renderer.py:  470: printSegment: j
+   DEBUG: 2026-02-28 04:13:10,525:      pdf_renderer.py:  470: printSegment: , even without breaking the dependent chain per
+   DEBUG: 2026-02-28 04:13:10,527:      pdf_renderer.py:  470: printSegment: iteration. This is why the merge-based algorithm is preferred over the naive row-per-warp approach.
+   DEBUG: 2026-02-28 04:13:10,528:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-28 04:13:10,529:      pdf_renderer.py:  470: printSegment: L2 cache absorbs x-vector accesses.
+   DEBUG: 2026-02-28 04:13:10,530:      pdf_renderer.py:  470: printSegment:  The x-vector (4 MB for cage15) fits in the H200
+   DEBUG: 2026-02-28 04:13:10,531:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,534:      pdf_renderer.py:  470: printSegment: s ~50 MB L2
+   DEBUG: 2026-02-28 04:13:10,535:      pdf_renderer.py:  470: printSegment: cache. After the initial cold misses, repeated accesses to the same x
+   DEBUG: 2026-02-28 04:13:10,536:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-28 04:13:10,536:      pdf_renderer.py:  470: printSegment: col
+   DEBUG: 2026-02-28 04:13:10,537:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-28 04:13:10,546:      pdf_renderer.py:  470: printSegment:  locations hit L2 with
+   DEBUG: 2026-02-28 04:13:10,552:      pdf_renderer.py:  470: printSegment: ~200-cycle latency instead of ~600-cycle DRAM latency. For structured matrices like ldoor (FEM
+   DEBUG: 2026-02-28 04:13:10,553:      pdf_renderer.py:  470: printSegment: with banded structure), x-vector access locality is particularly high.
+   DEBUG: 2026-02-28 04:13:10,554:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-28 04:13:10,555:      pdf_renderer.py:  470: printSegment: Sequential col
+   DEBUG: 2026-02-28 04:13:10,556:      pdf_renderer.py:  470: printSegment: _
+   DEBUG: 2026-02-28 04:13:10,557:      pdf_renderer.py:  470: printSegment: indices stream hits L1/L2.
+   DEBUG: 2026-02-28 04:13:10,557:      pdf_renderer.py:  470: printSegment:  The 
+   DEBUG: 2026-02-28 04:13:10,558:      pdf_renderer.py:  470: printSegment: col_indices[]
+   DEBUG: 2026-02-28 04:13:10,563:      pdf_renderer.py:  470: printSegment:  array is accessed sequentially,
+   DEBUG: 2026-02-28 04:13:10,564:      pdf_renderer.py:  470: printSegment: achieving near-perfect spatial locality with high L1 cache line utilization (coalesced streaming
+   DEBUG: 2026-02-28 04:13:10,565:      pdf_renderer.py:  470: printSegment: reads).
+   DEBUG: 2026-02-28 04:13:10,566:      pdf_renderer.py:  470: printSegment:  4 
+   DEBUG: 2026-02-28 04:13:10,566:      pdf_renderer.py:  470: printSegment: The naive model double-counts.
+   DEBUG: 2026-02-28 04:13:10,584:      pdf_renderer.py:  470: printSegment:  The dep-chain model assumes each load independently requires
+   DEBUG: 2026-02-28 04:13:10,593:      pdf_renderer.py:  470: printSegment: the full DRAM latency, but the memory system can pipeline multiple outstanding requests from
+   DEBUG: 2026-02-28 04:13:10,595:      pdf_renderer.py:  470: printSegment: different warps simultaneously. The 30.7 active warps each contribute some parallelism even when
+   DEBUG: 2026-02-28 04:13:10,596:      pdf_renderer.py:  470: printSegment: individually serialized.
+   DEBUG: 2026-02-28 04:13:10,597:      pdf_renderer.py:  470: printSegment: The correct interpretation:
+   DEBUG: 2026-02-28 04:13:10,604:      pdf_renderer.py:  470: printSegment:  The naive dep-chain ceiling (18%) is a pessimistic analytical bound. The actual ceiling
+   DEBUG: 2026-02-28 04:13:10,606:      pdf_renderer.py:  470: printSegment: for the merge-based algorithm lies somewhere between this bound and the hardware Little
+   DEBUG: 2026-02-28 04:13:10,606:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,619:      pdf_renderer.py:  470: printSegment: s Law ceiling (75.1%),
+   DEBUG: 2026-02-28 04:13:10,625:      pdf_renderer.py:  470: printSegment: with the exact value depending on L2 hit rates and ILP. The measured 60.8% is consistent with high L2 hit rates on
+   DEBUG: 2026-02-28 04:13:10,626:      pdf_renderer.py:  470: printSegment: x-vector and partial load overlap within the merge-path loop.
+   DEBUG: 2026-02-28 04:13:10,627:      pdf_renderer.py:  470: printSegment: 5.5 Gap Decomposition
+   DEBUG: 2026-02-28 04:13:10,632:      pdf_renderer.py:  470: printSegment: For each matrix, the gap between physical floor and measured time decomposes into contributing factors. Using the
+   DEBUG: 2026-02-28 04:13:10,633:      pdf_renderer.py:  470: printSegment: 300 ns DRAM latency estimate (75.1% Little
+   DEBUG: 2026-02-28 04:13:10,633:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,634:      pdf_renderer.py:  470: printSegment: s Law ceiling):
+   DEBUG: 2026-02-28 04:13:10,635:      pdf_renderer.py:  470: printSegment: | Matrix | Physical Floor (ms) | Little
+   DEBUG: 2026-02-28 04:13:10,635:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,636:      pdf_renderer.py:  470: printSegment: s Law Deficit (ms) | Dep Chain + Other (ms) | Total (ms) |
+   DEBUG: 2026-02-28 04:13:10,637:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,638:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:10,638:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,640:      pdf_renderer.py:  470: printSegment: |
+   DEBUG: 2026-02-28 04:13:10,641:      pdf_renderer.py:  470: printSegment: webbase-1M | 0.0119 | 0.0040 | 0.0252 | 0.0411 |
+   DEBUG: 2026-02-28 04:13:10,642:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,643:      pdf_renderer.py:  470: printSegment: | cant | 0.0103 | 0.0034 | 0.0271 | 0.0408 |
+   DEBUG: 2026-02-28 04:13:10,643:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,645:      pdf_renderer.py:  470: printSegment: | pwtk | 0.0300 | 0.0099 |
+   DEBUG: 2026-02-28 04:13:10,645:      pdf_renderer.py:  470: printSegment: 0.0264 | 0.0663 |
+   DEBUG: 2026-02-28 04:13:10,646:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,647:      pdf_renderer.py:  470: printSegment: | ldoor | 0.1203 | 0.0399 | 0.0362 | 0.1964 |
+   DEBUG: 2026-02-28 04:13:10,648:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,648:      pdf_renderer.py:  470: printSegment: | circuit5M | 0.1720 | 0.0570 | 0.0921 | 0.3211 |
+   DEBUG: 2026-02-28 04:13:10,649:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,651:      pdf_renderer.py:  470: printSegment: | cage15 |
+   DEBUG: 2026-02-28 04:13:10,652:      pdf_renderer.py:  470: printSegment: 0.2695 | 0.0893 | 0.1048 | 0.4636 |
+   DEBUG: 2026-02-28 04:13:10,652:      pdf_renderer.py:  470: printSegment: Interpretation:
+   DEBUG: 2026-02-28 04:13:10,653:      pdf_renderer.py:  470: printSegment:  The 
+   DEBUG: 2026-02-28 04:13:10,654:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,655:      pdf_renderer.py:  470: printSegment: Dep Chain + Other
+   DEBUG: 2026-02-28 04:13:10,655:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,682:      pdf_renderer.py:  470: printSegment:  column combines the dependent load chain penalty (the dominant factor
+   DEBUG: 2026-02-28 04:13:10,697:      pdf_renderer.py:  470: printSegment: for large matrices, as confirmed by NCU Long Scoreboard stalls) with secondary effects including grid saturation
+   DEBUG: 2026-02-28 04:13:10,700:      pdf_renderer.py:  470: printSegment: (small matrices), irregular access patterns (cage15), and kernel launch overhead. For the three large matrices (ldoor,
+   DEBUG: 2026-02-28 04:13:10,701:      pdf_renderer.py:  470: printSegment: circuit5M, cage15), the Little
+   DEBUG: 2026-02-28 04:13:10,702:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,706:      pdf_renderer.py:  470: printSegment: s Law deficit alone accounts for 20--27% of the total gap, with the dependent load
+   DEBUG: 2026-02-28 04:13:10,707:      pdf_renderer.py:  470: printSegment: chain accounting for most of the remainder.
+   DEBUG: 2026-02-28 04:13:10,708:      pdf_renderer.py:  470: printSegment: 5.6 Root Cause Summary
+   DEBUG: 2026-02-28 04:13:10,709:      pdf_renderer.py:  470: printSegment: SYMPTOM: SpMV achieves 25.1--60.8% of H200 peak bandwidth
+   DEBUG: 2026-02-28 04:13:10,709:      pdf_renderer.py:  470: printSegment:     |
+   DEBUG: 2026-02-28 04:13:10,711:      pdf_renderer.py:  470: printSegment:     +-- CAUSE 1: Little's Law bandwidth deficit (hardware limit)
+   DEBUG: 2026-02-28 04:13:10,712:      pdf_renderer.py:  470: printSegment:     |   H200 needs 85.2 warps/SM (at 300 ns) but has max 64
+   DEBUG: 2026-02-28 04:13:10,713:      pdf_renderer.py:  470: printSegment:     |   => Ceiling: 75.1% even for simple streaming loads
+   DEBUG: 2026-02-28 04:13:10,714:      pdf_renderer.py:  470: printSegment:     |
+   DEBUG: 2026-02-28 04:13:10,715:      pdf_renderer.py:  470: printSegment:     +-- CAUSE 2: Dependent load chain in CSR SpMV
+   DEBUG: 2026-02-28 04:13:10,716:      pdf_renderer.py:  470: printSegment:     |   col_indices[j] → x[col_indices[j]] serializes memory requests
+   DEBUG: 2026-02-28 04:13:10,717:      pdf_renderer.py:  470: printSegment:     |   => NCU confirms: Long Scoreboard stall at 33-38% of CPI
+   DEBUG: 2026-02-28 04:13:10,719:      pdf_renderer.py:  470: printSegment:     |   => Naive ceiling drops to 37.5% (merge-based algo partially
+   DEBUG: 2026-02-28 04:13:10,719:      pdf_renderer.py:  470: printSegment: compensates)
+   DEBUG: 2026-02-28 04:13:10,720:      pdf_renderer.py:  470: printSegment:     |
+   DEBUG: 2026-02-28 04:13:10,721:      pdf_renderer.py:  470: printSegment:     +-- CAUSE 3: Grid saturation (small matrices only)
+   DEBUG: 2026-02-28 04:13:10,723:      pdf_renderer.py:  470: printSegment:     |   cant: 20,872 blocks / (132 SMs × 2 blocks/SM) = 79 waves
+   DEBUG: 2026-02-28 04:13:10,724:      pdf_renderer.py:  470: printSegment: (OK)
+   DEBUG: 2026-02-28 04:13:10,725:      pdf_renderer.py:  470: printSegment:     |   But 32 threads/block × 20,872 = 668K threads, many idle SMs
+   DEBUG: 2026-02-28 04:13:10,726:      pdf_renderer.py:  470: printSegment:     |
+   DEBUG: 2026-02-28 04:13:10,727:      pdf_renderer.py:  470: printSegment:     +-- CAUSE 4: Irregular access patterns
+   DEBUG: 2026-02-28 04:13:10,728:      pdf_renderer.py:  470: printSegment:         x[col_indices[j]] is indirect, causing cache-unfriendly
+   DEBUG: 2026-02-28 04:13:10,729:      pdf_renderer.py:  470: printSegment: access
+   DEBUG: 2026-02-28 04:13:10,730:      pdf_renderer.py:  470: printSegment:         => cage15: 49% excessive sectors from poor coalescing
+   DEBUG: 2026-02-28 04:13:10,732:      pdf_renderer.py:  470: printSegment:         => Increases true DRAM traffic beyond minimum
+   DEBUG: 2026-02-28 04:13:10,733:      pdf_renderer.py:  470: printSegment: 6. Roofline Analysis
+   DEBUG: 2026-02-28 04:13:10,734:      pdf_renderer.py:  470: printSegment: 6.1 Roofline Model
+   DEBUG: 2026-02-28 04:13:10,735:      pdf_renderer.py:  470: printSegment: All six matrices fall deeply in the 
+   DEBUG: 2026-02-28 04:13:10,736:      pdf_renderer.py:  470: printSegment: memory-bound
+   DEBUG: 2026-02-28 04:13:10,737:      pdf_renderer.py:  470: printSegment:  regime, far below the H200
+   DEBUG: 2026-02-28 04:13:10,737:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,738:      pdf_renderer.py:  470: printSegment: s ridge point of 13.9 FLOP/byte:
+   DEBUG: 2026-02-28 04:13:10,739:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,739:      pdf_renderer.py:  470: printSegment: SpMV AI range: 0.12--0.16 FLOP/byte
+   DEBUG: 2026-02-28 04:13:10,740:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,741:      pdf_renderer.py:  470: printSegment: Achieved throughput: 151--474 GFLOP/s (vs. 66,900 GFLOP/s peak)
+   DEBUG: 2026-02-28 04:13:10,741:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,742:      pdf_renderer.py:  470: printSegment: The performance ceiling for SpMV is 
+   DEBUG: 2026-02-28 04:13:10,743:      pdf_renderer.py:  470: printSegment: entirely determined by memory bandwidth utilization
+   DEBUG: 2026-02-28 04:13:10,744:      pdf_renderer.py:  470: printSegment: The roofline plot (
+   DEBUG: 2026-02-28 04:13:10,745:      pdf_renderer.py:  470: printSegment: analysis/spmv_roofline_h200.png
+   DEBUG: 2026-02-28 04:13:10,749:      pdf_renderer.py:  470: printSegment: ) shows all matrices clustered in the memory-bound
+   DEBUG: 2026-02-28 04:13:10,750:      pdf_renderer.py:  470: printSegment: region, achieving only 27--61% of the memory bandwidth ceiling.
+   DEBUG: 2026-02-28 04:13:10,750:      pdf_renderer.py:  470: printSegment: 6.2 Bandwidth Utilization Trend
+   DEBUG: 2026-02-28 04:13:10,751:      pdf_renderer.py:  470: printSegment: Bandwidth utilization scales with matrix size:
+   DEBUG: 2026-02-28 04:13:10,752:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,753:      pdf_renderer.py:  470: printSegment: Small matrices
+   DEBUG: 2026-02-28 04:13:10,754:      pdf_renderer.py:  470: printSegment:  (webbase-1M, cant): 25--27% — insufficient grid to saturate GPU
+   DEBUG: 2026-02-28 04:13:10,754:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,755:      pdf_renderer.py:  470: printSegment: Medium matrices
+   DEBUG: 2026-02-28 04:13:10,756:      pdf_renderer.py:  470: printSegment:  (pwtk): 45% — approaching single-matrix saturation
+   DEBUG: 2026-02-28 04:13:10,757:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,757:      pdf_renderer.py:  470: printSegment: Large matrices
+   DEBUG: 2026-02-28 04:13:10,759:      pdf_renderer.py:  470: printSegment:  (ldoor, circuit5M, cage15): 52--61% — best utilization, limited by latency
+   DEBUG: 2026-02-28 04:13:10,759:      pdf_renderer.py:  470: printSegment: See 
+   DEBUG: 2026-02-28 04:13:10,760:      pdf_renderer.py:  470: printSegment: analysis/spmv_bw_efficiency.png
+   DEBUG: 2026-02-28 04:13:10,761:      pdf_renderer.py:  470: printSegment:  for the full comparison.
+   DEBUG: 2026-02-28 04:13:10,762:      pdf_renderer.py:  470: printSegment: 7. Decoupled Access-Execute (DAE) Analysis for H200
+   DEBUG: 2026-02-28 04:13:10,763:      pdf_renderer.py:  470: printSegment: 7.1 What is DAE?
+   DEBUG: 2026-02-28 04:13:10,764:      pdf_renderer.py:  470: printSegment: The Decoupled Access-Execute architecture was introduced by James E. Smith (ISCA 
+   DEBUG: 2026-02-28 04:13:10,765:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,768:      pdf_renderer.py:  470: printSegment: 82, ACM TOCS 1984). The
+   DEBUG: 2026-02-28 04:13:10,769:      pdf_renderer.py:  470: printSegment: core idea is to split a processor into two cooperating units:
+   DEBUG: 2026-02-28 04:13:10,770:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,771:      pdf_renderer.py:  470: printSegment: Access Processor (AP):
+   DEBUG: 2026-02-28 04:13:10,772:      pdf_renderer.py:  470: printSegment:  Computes memory addresses, issues loads/stores, handles
+   DEBUG: 2026-02-28 04:13:10,773:      pdf_renderer.py:  470: printSegment: address-dependent control flow.
+   DEBUG: 2026-02-28 04:13:10,774:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,775:      pdf_renderer.py:  470: printSegment: Execute Processor (EP):
+   DEBUG: 2026-02-28 04:13:10,776:      pdf_renderer.py:  470: printSegment:  Performs arithmetic on data fetched by the AP — FMA, reductions,
+   DEBUG: 2026-02-28 04:13:10,777:      pdf_renderer.py:  470: printSegment: comparisons.
+   DEBUG: 2026-02-28 04:13:10,778:      pdf_renderer.py:  470: printSegment: The two processors communicate through 
+   DEBUG: 2026-02-28 04:13:10,779:      pdf_renderer.py:  470: printSegment: hardware FIFOs (queues)
+   DEBUG: 2026-02-28 04:13:10,783:      pdf_renderer.py:  470: printSegment: : the AP pushes loaded data into FIFOs, and
+   DEBUG: 2026-02-28 04:13:10,784:      pdf_renderer.py:  470: printSegment: the EP pops data from FIFOs as operands. The AP runs 
+   DEBUG: 2026-02-28 04:13:10,785:      pdf_renderer.py:  470: printSegment: ahead
+   DEBUG: 2026-02-28 04:13:10,786:      pdf_renderer.py:  470: printSegment:  of the EP, prefetching data before the EP needs it.
+   DEBUG: 2026-02-28 04:13:10,787:      pdf_renderer.py:  470: printSegment: 7.2 Why DAE Exists — The Latency Hiding Gap
+   DEBUG: 2026-02-28 04:13:10,799:      pdf_renderer.py:  470: printSegment: The fundamental problem DAE solves is 
+   DEBUG: 2026-02-28 04:13:10,800:      pdf_renderer.py:  470: printSegment: memory latency hiding when parallelism is insufficient
+   DEBUG: 2026-02-28 04:13:10,802:      pdf_renderer.py:  470: printSegment: . Traditional
+   DEBUG: 2026-02-28 04:13:10,803:      pdf_renderer.py:  470: printSegment: approaches to hiding latency are:
+   DEBUG: 2026-02-28 04:13:10,804:      pdf_renderer.py:  470: printSegment: | Approach | Mechanism | Limitation |
+   DEBUG: 2026-02-28 04:13:10,804:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,805:      pdf_renderer.py:  470: printSegment: |---|---|---|
+   DEBUG: 2026-02-28 04:13:10,806:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,809:      pdf_renderer.py:  470: printSegment: | Out-of-order execution | Reorder buffer finds independent work |
+   DEBUG: 2026-02-28 04:13:10,810:      pdf_renderer.py:  470: printSegment: Area/power expensive; limited window size |
+   DEBUG: 2026-02-28 04:13:10,811:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,815:      pdf_renderer.py:  470: printSegment: | Multithreading (GPU warps) | Switch to another thread while one
+   DEBUG: 2026-02-28 04:13:10,817:      pdf_renderer.py:  470: printSegment: waits | Requires enough threads; finite warp slots |
+   DEBUG: 2026-02-28 04:13:10,817:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,819:      pdf_renderer.py:  470: printSegment: | Software prefetching | Compiler inserts prefetch hints | Cannot
+   DEBUG: 2026-02-28 04:13:10,820:      pdf_renderer.py:  470: printSegment: handle 
+   DEBUG: 2026-02-28 04:13:10,821:      pdf_renderer.py:  470: printSegment: dependent
+   DEBUG: 2026-02-28 04:13:10,822:      pdf_renderer.py:  470: printSegment:  load chains |
+   DEBUG: 2026-02-28 04:13:10,823:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,823:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:10,824:      pdf_renderer.py:  470: printSegment: DAE
+   DEBUG: 2026-02-28 04:13:10,825:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:10,826:      pdf_renderer.py:  470: printSegment: AP runs ahead, breaking the dependence
+   DEBUG: 2026-02-28 04:13:10,828:      pdf_renderer.py:  470: printSegment:  | Needs FIFO storage; compiler
+   DEBUG: 2026-02-28 04:13:10,829:      pdf_renderer.py:  470: printSegment: support |
+   DEBUG: 2026-02-28 04:13:10,830:      pdf_renderer.py:  470: printSegment: DAE is uniquely effective for 
+   DEBUG: 2026-02-28 04:13:10,831:      pdf_renderer.py:  470: printSegment: dependent load chains
+   DEBUG: 2026-02-28 04:13:10,833:      pdf_renderer.py:  470: printSegment:  — the exact pattern in SpMV — because the AP can resolve the
+   DEBUG: 2026-02-28 04:13:10,834:      pdf_renderer.py:  470: printSegment: address dependency (
+   DEBUG: 2026-02-28 04:13:10,835:      pdf_renderer.py:  470: printSegment: col_indices[j]
+   DEBUG: 2026-02-28 04:13:10,836:      pdf_renderer.py:  470: printSegment:  → address of 
+   DEBUG: 2026-02-28 04:13:10,837:      pdf_renderer.py:  470: printSegment: x[col]
+   DEBUG: 2026-02-28 04:13:10,838:      pdf_renderer.py:  470: printSegment: ) and issue the second load 
+   DEBUG: 2026-02-28 04:13:10,839:      pdf_renderer.py:  470: printSegment: before
+   DEBUG: 2026-02-28 04:13:10,840:      pdf_renderer.py:  470: printSegment:  the EP needs the
+   DEBUG: 2026-02-28 04:13:10,840:      pdf_renderer.py:  470: printSegment: result.
+   DEBUG: 2026-02-28 04:13:10,842:      pdf_renderer.py:  470: printSegment: 7.3 DAE vs Current GPU Latency Hiding
+   DEBUG: 2026-02-28 04:13:10,843:      pdf_renderer.py:  470: printSegment: Current GPUs (including H200) hide memory latency exclusively through 
+   DEBUG: 2026-02-28 04:13:10,844:      pdf_renderer.py:  470: printSegment: warp-level multithreading
+   DEBUG: 2026-02-28 04:13:10,849:      pdf_renderer.py:  470: printSegment: : when one
+   DEBUG: 2026-02-28 04:13:10,850:      pdf_renderer.py:  470: printSegment: warp stalls on a memory access, the scheduler switches to another ready warp. This works well when:
+   DEBUG: 2026-02-28 04:13:10,852:      pdf_renderer.py:  470: printSegment: available_warps/SM >= required_warps/SM = (peak_BW × DRAM_latency) /
+   DEBUG: 2026-02-28 04:13:10,853:      pdf_renderer.py:  470: printSegment: (cache_line × num_SMs)
+   DEBUG: 2026-02-28 04:13:10,854:      pdf_renderer.py:  470: printSegment: On the H200, this inequality is 
+   DEBUG: 2026-02-28 04:13:10,854:      pdf_renderer.py:  470: printSegment: violated
+   DEBUG: 2026-02-28 04:13:10,855:      pdf_renderer.py:  470: printSegment: :
+   DEBUG: 2026-02-28 04:13:10,856:      pdf_renderer.py:  470: printSegment: available = 64 warps/SM
+   DEBUG: 2026-02-28 04:13:10,857:      pdf_renderer.py:  470: printSegment: required  = (4,800 GB/s × 300 ns) / (128 B × 132 SMs) = 85.2 warps/SM
+   DEBUG: 2026-02-28 04:13:10,857:      pdf_renderer.py:  470: printSegment: 64 < 85.2  →  DEFICIT of 21.2 warps/SM
+   DEBUG: 2026-02-28 04:13:10,858:      pdf_renderer.py:  470: printSegment: DAE provides an alternative: instead of needing more warps, each warp can have 
+   DEBUG: 2026-02-28 04:13:10,859:      pdf_renderer.py:  470: printSegment: multiple outstanding memory
+   DEBUG: 2026-02-28 04:13:10,860:      pdf_renderer.py:  470: printSegment: requests
+   DEBUG: 2026-02-28 04:13:10,861:      pdf_renderer.py:  470: printSegment:  via the AP running ahead.
+   DEBUG: 2026-02-28 04:13:10,862:      pdf_renderer.py:  470: printSegment: 7.4 NCU Evidence: The DAE-Relevant Bottleneck
+   DEBUG: 2026-02-28 04:13:10,863:      pdf_renderer.py:  470: printSegment: Our NCU profiling provides 
+   DEBUG: 2026-02-28 04:13:10,863:      pdf_renderer.py:  470: printSegment: direct empirical evidence
+   DEBUG: 2026-02-28 04:13:10,864:      pdf_renderer.py:  470: printSegment:  that DAE would help. The key metrics:
+   DEBUG: 2026-02-28 04:13:10,865:      pdf_renderer.py:  470: printSegment: Long Scoreboard Stall Dominance:
+   DEBUG: 2026-02-28 04:13:10,866:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,867:      pdf_renderer.py:  470: printSegment: cage15: 4.23 warps/cycle stalled on Long Scoreboard (38.4% of CPI)
+   DEBUG: 2026-02-28 04:13:10,868:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,869:      pdf_renderer.py:  470: printSegment: cant: 4.25 warps/cycle (37.6%)
+   DEBUG: 2026-02-28 04:13:10,869:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:10,870:      pdf_renderer.py:  470: printSegment: ldoor: 3.41 warps/cycle (33.0%)
+   DEBUG: 2026-02-28 04:13:10,871:      pdf_renderer.py:  470: printSegment: The Long Scoreboard stall occurs when a warp is waiting for a 
+   DEBUG: 2026-02-28 04:13:10,873:      pdf_renderer.py:  470: printSegment: register value that depends on an outstanding
+   DEBUG: 2026-02-28 04:13:10,874:      pdf_renderer.py:  470: printSegment: L1TEX (global memory) operation
+   DEBUG: 2026-02-28 04:13:10,875:      pdf_renderer.py:  470: printSegment: . In SpMV, this is precisely the dependent load: the warp issued 
+   DEBUG: 2026-02-28 04:13:10,876:      pdf_renderer.py:  470: printSegment: LDG
+   DEBUG: 2026-02-28 04:13:10,877:      pdf_renderer.py:  470: printSegment: col_indices[j]
+   DEBUG: 2026-02-28 04:13:10,878:      pdf_renderer.py:  470: printSegment:  and is now waiting for the result before it can compute 
+   DEBUG: 2026-02-28 04:13:10,878:      pdf_renderer.py:  470: printSegment: x_base + col * 4
+   DEBUG: 2026-02-28 04:13:10,879:      pdf_renderer.py:  470: printSegment:  and issue the
+   DEBUG: 2026-02-28 04:13:10,880:      pdf_renderer.py:  470: printSegment: second 
+   DEBUG: 2026-02-28 04:13:10,881:      pdf_renderer.py:  470: printSegment: LDG x[col]
+   DEBUG: 2026-02-28 04:13:10,881:      pdf_renderer.py:  470: printSegment: .
+   DEBUG: 2026-02-28 04:13:10,882:      pdf_renderer.py:  470: printSegment: NCU Rule Confirmation:
+   DEBUG: 2026-02-28 04:13:10,883:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,895:      pdf_renderer.py:  470: printSegment: On average, each warp spends 4.2 cycles being stalled waiting for a scoreboard dependency on a
+   DEBUG: 2026-02-28 04:13:10,898:      pdf_renderer.py:  470: printSegment: L1TEX operation. This stall type represents about 38.3% of the total average of 11.0 cycles between
+   DEBUG: 2026-02-28 04:13:10,899:      pdf_renderer.py:  470: printSegment: issuing two instructions.
+   DEBUG: 2026-02-28 04:13:10,900:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:10,901:      pdf_renderer.py:  470: printSegment: This is exactly the bottleneck DAE was designed to break.
+   DEBUG: 2026-02-28 04:13:10,902:      pdf_renderer.py:  470: printSegment: 7.5 What DAE Would Fix on H200
+   DEBUG: 2026-02-28 04:13:10,903:      pdf_renderer.py:  470: printSegment: A DAE unit would allow the AP to:
+   DEBUG: 2026-02-28 04:13:10,904:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-28 04:13:10,904:      pdf_renderer.py:  470: printSegment: Stream through 
+   DEBUG: 2026-02-28 04:13:10,905:      pdf_renderer.py:  470: printSegment: col_indices[j]
+   DEBUG: 2026-02-28 04:13:10,906:      pdf_renderer.py:  470: printSegment:  sequentially (high L1/L2 hit rate)
+   DEBUG: 2026-02-28 04:13:10,907:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-28 04:13:10,908:      pdf_renderer.py:  470: printSegment: Immediately issue prefetch/load for 
+   DEBUG: 2026-02-28 04:13:10,909:      pdf_renderer.py:  470: printSegment: x[col_indices[j]]
+   DEBUG: 2026-02-28 04:13:10,910:      pdf_renderer.py:  470: printSegment:  upon receiving each 
+   DEBUG: 2026-02-28 04:13:10,911:      pdf_renderer.py:  470: printSegment: col
+   DEBUG: 2026-02-28 04:13:10,911:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-28 04:13:10,912:      pdf_renderer.py:  470: printSegment: Push the loaded 
+   DEBUG: 2026-02-28 04:13:10,913:      pdf_renderer.py:  470: printSegment: x[col]
+   DEBUG: 2026-02-28 04:13:10,914:      pdf_renderer.py:  470: printSegment:  value (and paired 
+   DEBUG: 2026-02-28 04:13:10,915:      pdf_renderer.py:  470: printSegment: values[j]
+   DEBUG: 2026-02-28 04:13:10,916:      pdf_renderer.py:  470: printSegment: ) into a FIFO
+   DEBUG: 2026-02-28 04:13:10,916:      pdf_renderer.py:  470: printSegment:  4 
+   DEBUG: 2026-02-28 04:13:10,917:      pdf_renderer.py:  470: printSegment: Continue to the 
+   DEBUG: 2026-02-28 04:13:10,918:      pdf_renderer.py:  470: printSegment: next
+   DEBUG: 2026-02-28 04:13:10,919:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,920:      pdf_renderer.py:  470: printSegment: j
+   DEBUG: 2026-02-28 04:13:10,920:      pdf_renderer.py:  470: printSegment:  without waiting for 
+   DEBUG: 2026-02-28 04:13:10,921:      pdf_renderer.py:  470: printSegment: x[col]
+   DEBUG: 2026-02-28 04:13:10,922:      pdf_renderer.py:  470: printSegment:  to arrive
+   DEBUG: 2026-02-28 04:13:10,923:      pdf_renderer.py:  470: printSegment:  5 
+   DEBUG: 2026-02-28 04:13:10,924:      pdf_renderer.py:  470: printSegment: The EP then pops 
+   DEBUG: 2026-02-28 04:13:10,925:      pdf_renderer.py:  470: printSegment: (values[j], x[col])
+   DEBUG: 2026-02-28 04:13:10,926:      pdf_renderer.py:  470: printSegment:  pairs from the FIFO and accumulates 
+   DEBUG: 2026-02-28 04:13:10,927:      pdf_renderer.py:  470: printSegment: y[i]
+   DEBUG: 2026-02-28 04:13:10,928:      pdf_renderer.py:  470: printSegment: The dependent load chain is broken:
+   DEBUG: 2026-02-28 04:13:10,929:      pdf_renderer.py:  470: printSegment:  LOAD 2 for iteration 
+   DEBUG: 2026-02-28 04:13:10,930:      pdf_renderer.py:  470: printSegment: j
+   DEBUG: 2026-02-28 04:13:10,931:      pdf_renderer.py:  470: printSegment:  overlaps with LOAD 1 for iteration 
+   DEBUG: 2026-02-28 04:13:10,931:      pdf_renderer.py:  470: printSegment: j+D
+   DEBUG: 2026-02-28 04:13:10,933:      pdf_renderer.py:  470: printSegment:  (where D is
+   DEBUG: 2026-02-28 04:13:10,934:      pdf_renderer.py:  470: printSegment: the FIFO depth).
+   DEBUG: 2026-02-28 04:13:10,935:      pdf_renderer.py:  470: printSegment: 7.6 Performance Ceiling With DAE on H200
+   DEBUG: 2026-02-28 04:13:10,936:      pdf_renderer.py:  470: printSegment: If DAE fully breaks the dependent load chain, the effective MLP per warp returns to 1.0 (from 0.5):
+   DEBUG: 2026-02-28 04:13:10,938:      pdf_renderer.py:  470: printSegment: With DAE:    effective_warps = 64/SM (at 100% occupancy)
+   DEBUG: 2026-02-28 04:13:10,939:      pdf_renderer.py:  470: printSegment:              ceiling = 64/85.2 = 75.1% of peak BW
+   DEBUG: 2026-02-28 04:13:10,940:      pdf_renderer.py:  470: printSegment:              max_BW  = 75.1% × 4,800 = 3,605 GB/s
+   DEBUG: 2026-02-28 04:13:10,941:      pdf_renderer.py:  470: printSegment: 7.7 Predicted Speedup by Matrix
+   DEBUG: 2026-02-28 04:13:10,943:      pdf_renderer.py:  470: printSegment: Using our measured data and assuming DAE lifts the ceiling from the dep-chain-limited value to the Little
+   DEBUG: 2026-02-28 04:13:10,943:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,944:      pdf_renderer.py:  470: printSegment: s Law
+   DEBUG: 2026-02-28 04:13:10,945:      pdf_renderer.py:  470: printSegment: ceiling for bandwidth-limited matrices:
+   DEBUG: 2026-02-28 04:13:10,946:      pdf_renderer.py:  470: printSegment: | Matrix | Current BW (GB/s) | Current % Peak | Predicted with DAE | Predicted Speedup |
+   DEBUG: 2026-02-28 04:13:10,947:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,947:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:10,948:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,950:      pdf_renderer.py:  470: printSegment: | cage15 |
+   DEBUG: 2026-02-28 04:13:10,950:      pdf_renderer.py:  470: printSegment: 2,745 | 57.2% | ~75.1% (3,605 GB/s) | 
+   DEBUG: 2026-02-28 04:13:10,951:      pdf_renderer.py:  470: printSegment: 1.31x
+   DEBUG: 2026-02-28 04:13:10,952:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:10,952:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,953:      pdf_renderer.py:  470: printSegment: | ldoor | 2,920 | 60.8% | ~75.1% (3,605 GB/s) | 
+   DEBUG: 2026-02-28 04:13:10,954:      pdf_renderer.py:  470: printSegment: 1.23x
+   DEBUG: 2026-02-28 04:13:10,954:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:10,955:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,957:      pdf_renderer.py:  470: printSegment: | circuit5M |
+   DEBUG: 2026-02-28 04:13:10,958:      pdf_renderer.py:  470: printSegment: 2,501 | 52.1% | ~75.1% (3,605 GB/s) | 
+   DEBUG: 2026-02-28 04:13:10,958:      pdf_renderer.py:  470: printSegment: 1.44x
+   DEBUG: 2026-02-28 04:13:10,959:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:10,959:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,960:      pdf_renderer.py:  470: printSegment: | pwtk | 2,158 | 44.9% | ~75.1% (3,605 GB/s) | 
+   DEBUG: 2026-02-28 04:13:10,961:      pdf_renderer.py:  470: printSegment: 1.67x
+   DEBUG: 2026-02-28 04:13:10,961:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:10,962:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,963:      pdf_renderer.py:  470: printSegment: | webbase-1M |
+   DEBUG: 2026-02-28 04:13:10,964:      pdf_renderer.py:  470: printSegment: 1,296 | 27.0% | ~54% (2,592 GB/s)
+   DEBUG: 2026-02-28 04:13:10,965:      pdf_renderer.py:  470: printSegment: *
+   DEBUG: 2026-02-28 04:13:10,965:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:10,966:      pdf_renderer.py:  470: printSegment: 2.00x
+   DEBUG: 2026-02-28 04:13:10,967:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:10,967:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,968:      pdf_renderer.py:  470: printSegment: | cant | 1,205 | 25.1% | ~50% (2,400 GB/s)
+   DEBUG: 2026-02-28 04:13:10,969:      pdf_renderer.py:  470: printSegment: *
+   DEBUG: 2026-02-28 04:13:10,969:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:10,970:      pdf_renderer.py:  470: printSegment: 2.00x
+   DEBUG: 2026-02-28 04:13:10,970:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:10,972:      pdf_renderer.py:  470: printSegment: Small matrices are additionally limited by grid saturation; DAE doubles effective MLP but grid effects remain.
+   DEBUG: 2026-02-28 04:13:10,973:      pdf_renderer.py:  470: printSegment: Alternative analysis using CPI reduction:
+   DEBUG: 2026-02-28 04:13:10,974:      pdf_renderer.py:  470: printSegment:  If the Long Scoreboard stalls are eliminated entirely:
+   DEBUG: 2026-02-28 04:13:10,975:      pdf_renderer.py:  470: printSegment: | Matrix | Current CPI | Projected CPI | Theoretical Speedup |
+   DEBUG: 2026-02-28 04:13:10,976:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,977:      pdf_renderer.py:  470: printSegment: |---|---|---|---|
+   DEBUG: 2026-02-28 04:13:10,977:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,978:      pdf_renderer.py:  470: printSegment: | cant | 11.3 | 7.1 | 
+   DEBUG: 2026-02-28 04:13:10,979:      pdf_renderer.py:  470: printSegment: 1.60x
+   DEBUG: 2026-02-28 04:13:10,979:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:10,980:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,981:      pdf_renderer.py:  470: printSegment: | ldoor | 10.3 |
+   DEBUG: 2026-02-28 04:13:10,982:      pdf_renderer.py:  470: printSegment: 6.9 | 
+   DEBUG: 2026-02-28 04:13:10,982:      pdf_renderer.py:  470: printSegment: 1.49x
+   DEBUG: 2026-02-28 04:13:10,983:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:10,984:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:10,985:      pdf_renderer.py:  470: printSegment: | cage15 | 11.0 | 6.8 | 
+   DEBUG: 2026-02-28 04:13:10,985:      pdf_renderer.py:  470: printSegment: 1.62x
+   DEBUG: 2026-02-28 04:13:10,986:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:10,987:      pdf_renderer.py:  470: printSegment: The CPI-based analysis provides a more direct estimate: 
+   DEBUG: 2026-02-28 04:13:10,988:      pdf_renderer.py:  470: printSegment: 1.49--1.62x speedup
+   DEBUG: 2026-02-28 04:13:10,989:      pdf_renderer.py:  470: printSegment:  from eliminating the dominant stall
+   DEBUG: 2026-02-28 04:13:10,990:      pdf_renderer.py:  470: printSegment: reason.
+   DEBUG: 2026-02-28 04:13:10,991:      pdf_renderer.py:  470: printSegment: 7.8 FIFO Depth Analysis for H200
+   DEBUG: 2026-02-28 04:13:10,992:      pdf_renderer.py:  470: printSegment: Minimum depth to saturate bandwidth (from Little
+   DEBUG: 2026-02-28 04:13:10,993:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:10,993:      pdf_renderer.py:  470: printSegment: s Law):
+   DEBUG: 2026-02-28 04:13:10,994:      pdf_renderer.py:  470: printSegment: Required outstanding cache-line requests per SM = 85.2
+   DEBUG: 2026-02-28 04:13:10,995:      pdf_renderer.py:  470: printSegment: Available warps per SM = 64 (at 100% occupancy)
+   DEBUG: 2026-02-28 04:13:10,996:      pdf_renderer.py:  470: printSegment: Required requests per warp = 85.2 / 64 = 1.33
+   DEBUG: 2026-02-28 04:13:10,998:      pdf_renderer.py:  470: printSegment: Minimum FIFO depth = ceil(1.33) = 2 entries per warp
+   DEBUG: 2026-02-28 04:13:10,999:      pdf_renderer.py:  470: printSegment: With FIFO depth = 2, each warp can have 2 outstanding x
+   DEBUG: 2026-02-28 04:13:10,999:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-28 04:13:11,000:      pdf_renderer.py:  470: printSegment: col
+   DEBUG: 2026-02-28 04:13:11,001:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-28 04:13:11,002:      pdf_renderer.py:  470: printSegment:  loads, giving 128 total per SM — exceeding the 85.2
+   DEBUG: 2026-02-28 04:13:11,003:      pdf_renderer.py:  470: printSegment: requirement.
+   DEBUG: 2026-02-28 04:13:11,004:      pdf_renderer.py:  470: printSegment: Practical recommendation:
+   DEBUG: 2026-02-28 04:13:11,008:      pdf_renderer.py:  470: printSegment:  FIFO depth = 8--32 entries per warp to absorb latency variance (L2 hit vs DRAM
+   DEBUG: 2026-02-28 04:13:11,010:      pdf_renderer.py:  470: printSegment: miss), row boundary transitions, and warp scheduling jitter.
+   DEBUG: 2026-02-28 04:13:11,011:      pdf_renderer.py:  470: printSegment: SRAM cost at various depths (H200 with 132 SMs, 64 warps/SM):
+   DEBUG: 2026-02-28 04:13:11,012:      pdf_renderer.py:  470: printSegment: | FIFO Depth | Bytes/Warp | KB/SM | Total MB (132 SMs) | % of RF Size |
+   DEBUG: 2026-02-28 04:13:11,013:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,014:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:11,015:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,016:      pdf_renderer.py:  470: printSegment: | 2 | 16 B | 1.0 KB | 0.13
+   DEBUG: 2026-02-28 04:13:11,017:      pdf_renderer.py:  470: printSegment: MB | 0.4% |
+   DEBUG: 2026-02-28 04:13:11,018:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,019:      pdf_renderer.py:  470: printSegment: | 8 | 64 B | 4.0 KB | 0.52 MB | 1.5% |
+   DEBUG: 2026-02-28 04:13:11,019:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,020:      pdf_renderer.py:  470: printSegment: | 16 | 128 B | 8.0 KB | 1.03 MB | 3.1% |
+   DEBUG: 2026-02-28 04:13:11,021:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,022:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,023:      pdf_renderer.py:  470: printSegment: 32
+   DEBUG: 2026-02-28 04:13:11,024:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:11,025:      pdf_renderer.py:  470: printSegment: 256 B
+   DEBUG: 2026-02-28 04:13:11,025:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:11,026:      pdf_renderer.py:  470: printSegment: 16.0 KB
+   DEBUG: 2026-02-28 04:13:11,027:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:11,028:      pdf_renderer.py:  470: printSegment: 2.06 MB
+   DEBUG: 2026-02-28 04:13:11,029:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:11,030:      pdf_renderer.py:  470: printSegment: 6.3%
+   DEBUG: 2026-02-28 04:13:11,031:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:11,031:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,032:      pdf_renderer.py:  470: printSegment: | 64 | 512 B | 32.0 KB | 4.13 MB | 12.5% |
+   DEBUG: 2026-02-28 04:13:11,034:      pdf_renderer.py:  470: printSegment: Entry size = 8 bytes (4B data + 4B paired value). RF size per SM = 65,536 × 4B = 256 KB.
+   DEBUG: 2026-02-28 04:13:11,035:      pdf_renderer.py:  470: printSegment: 32 entries at 2.06 MB total is 6.3% of the register file area
+   DEBUG: 2026-02-28 04:13:11,036:      pdf_renderer.py:  470: printSegment:  — a very modest cost for up to 1.6x SpMV speedup.
+   DEBUG: 2026-02-28 04:13:11,038:      pdf_renderer.py:  470: printSegment: 7.9 FIFO Depth vs Bandwidth Utilization Curve
+   DEBUG: 2026-02-28 04:13:11,039:      pdf_renderer.py:  470: printSegment: FIFO Depth    Outstanding Reqs/SM    % Peak BW (theoretical)
+   DEBUG: 2026-02-28 04:13:11,040:      pdf_renderer.py:  470: printSegment: 0             32 (baseline*)          37.5%  ← current (dep chain)
+   DEBUG: 2026-02-28 04:13:11,041:      pdf_renderer.py:  470: printSegment: 1             64                      75.1%
+   DEBUG: 2026-02-28 04:13:11,043:      pdf_renderer.py:  470: printSegment: 2             128                     100.0%  (saturated)
+   DEBUG: 2026-02-28 04:13:11,044:      pdf_renderer.py:  470: printSegment: 4             256                     100.0%
+   DEBUG: 2026-02-28 04:13:11,045:      pdf_renderer.py:  470: printSegment: 8             512                     100.0%
+   DEBUG: 2026-02-28 04:13:11,046:      pdf_renderer.py:  470: printSegment: 16            1024                    100.0%
+   DEBUG: 2026-02-28 04:13:11,047:      pdf_renderer.py:  470: printSegment: 32            2048                    100.0%
+   DEBUG: 2026-02-28 04:13:11,049:      pdf_renderer.py:  470: printSegment: *Assumes 50% occupancy (32 warps/SM), dep chain halves to 16
+   DEBUG: 2026-02-28 04:13:11,050:      pdf_renderer.py:  470: printSegment: effective,
+   DEBUG: 2026-02-28 04:13:11,051:      pdf_renderer.py:  470: printSegment:  but cuSPARSE's merge-based algorithm provides some overlap — actual
+   DEBUG: 2026-02-28 04:13:11,053:      pdf_renderer.py:  470: printSegment:  performance (60.8%) exceeds the naive 37.5% ceiling (see Section
+   DEBUG: 2026-02-28 04:13:11,053:      pdf_renderer.py:  470: printSegment: 5.4).
+   DEBUG: 2026-02-28 04:13:11,054:      pdf_renderer.py:  470: printSegment: The sharp knee at depth=2 shows that even a minimal FIFO dramatically changes the performance picture. The 
+   DEBUG: 2026-02-28 04:13:11,056:      pdf_renderer.py:  470: printSegment: practical recommendation of depth=32 provides 16x margin
+   DEBUG: 2026-02-28 04:13:11,058:      pdf_renderer.py:  470: printSegment:  over the minimum, absorbing real-world variance in
+   DEBUG: 2026-02-28 04:13:11,059:      pdf_renderer.py:  470: printSegment: access latency.
+   DEBUG: 2026-02-28 04:13:11,060:      pdf_renderer.py:  470: printSegment: 7.10 H200 vs B200: DAE Impact Comparison
+   DEBUG: 2026-02-28 04:13:11,061:      pdf_renderer.py:  470: printSegment: | Specification | H200 (Hopper) | B200 (Blackwell) |
+   DEBUG: 2026-02-28 04:13:11,061:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,062:      pdf_renderer.py:  470: printSegment: |---|---|---|
+   DEBUG: 2026-02-28 04:13:11,062:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,063:      pdf_renderer.py:  470: printSegment: | Peak Memory BW | 4,800 GB/s | 8,000 GB/s |
+   DEBUG: 2026-02-28 04:13:11,064:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,065:      pdf_renderer.py:  470: printSegment: | SMs
+   DEBUG: 2026-02-28 04:13:11,065:      pdf_renderer.py:  470: printSegment: | 132 | 148
+   DEBUG: 2026-02-28 04:13:11,066:      pdf_renderer.py:  470: printSegment: *
+   DEBUG: 2026-02-28 04:13:11,066:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:11,067:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,067:      pdf_renderer.py:  470: printSegment: | Max Warps/SM | 64 | 64 |
+   DEBUG: 2026-02-28 04:13:11,068:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,069:      pdf_renderer.py:  470: printSegment: | DRAM Latency (est.) | ~300 ns | ~200 ns |
+   DEBUG: 2026-02-28 04:13:11,069:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,070:      pdf_renderer.py:  470: printSegment: | Required Warps/SM | 85.2 |
+   DEBUG: 2026-02-28 04:13:11,071:      pdf_renderer.py:  470: printSegment: 84.5 |
+   DEBUG: 2026-02-28 04:13:11,071:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,072:      pdf_renderer.py:  470: printSegment: | Deficit | 21.2 warps/SM | 20.5 warps/SM |
+   DEBUG: 2026-02-28 04:13:11,073:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,074:      pdf_renderer.py:  470: printSegment: | Headroom Ratio | 0.75x | 0.76x |
+   DEBUG: 2026-02-28 04:13:11,074:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,075:      pdf_renderer.py:  470: printSegment: | Best % Peak BW (cage15) | 
+   DEBUG: 2026-02-28 04:13:11,076:      pdf_renderer.py:  470: printSegment: 57.2%
+   DEBUG: 2026-02-28 04:13:11,076:      pdf_renderer.py:  470: printSegment:  | 41.7% |
+   DEBUG: 2026-02-28 04:13:11,077:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,078:      pdf_renderer.py:  470: printSegment: | Dep-chain Ceiling | ~37.5% | ~37.9% |
+   DEBUG: 2026-02-28 04:13:11,078:      pdf_renderer.py:  470: printSegment: *
+   DEBUG: 2026-02-28 04:13:11,079:      pdf_renderer.py:  470: printSegment: B200 SM count estimated from published specs.
+   DEBUG: 2026-02-28 04:13:11,080:      pdf_renderer.py:  470: printSegment: Key insight:
+   DEBUG: 2026-02-28 04:13:11,086:      pdf_renderer.py:  470: printSegment:  With the updated 300 ns latency estimate, the H200 and B200 have remarkably similar warp deficits
+   DEBUG: 2026-02-28 04:13:11,087:      pdf_renderer.py:  470: printSegment: (~21 warps/SM) and headroom ratios (~0.75x). The H200 achieves 
+   DEBUG: 2026-02-28 04:13:11,088:      pdf_renderer.py:  470: printSegment: higher % peak BW
+   DEBUG: 2026-02-28 04:13:11,090:      pdf_renderer.py:  470: printSegment:  than the B200 (57.2% vs
+   DEBUG: 2026-02-28 04:13:11,091:      pdf_renderer.py:  470: printSegment: 41.7%) despite similar headroom, suggesting the H200
+   DEBUG: 2026-02-28 04:13:11,092:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,098:      pdf_renderer.py:  470: printSegment: s merge-based kernel is more effectively utilizing its cache
+   DEBUG: 2026-02-28 04:13:11,099:      pdf_renderer.py:  470: printSegment: hierarchy and achieving better MLP overlap. Both GPUs are fundamentally warp-starved for SpMV.
+   DEBUG: 2026-02-28 04:13:11,100:      pdf_renderer.py:  470: printSegment: DAE benefit scaling:
+   DEBUG: 2026-02-28 04:13:11,101:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,102:      pdf_renderer.py:  470: printSegment: B200:
+   DEBUG: 2026-02-28 04:13:11,103:      pdf_renderer.py:  470: printSegment:  Current 41.7% → with DAE ~75.8% → 
+   DEBUG: 2026-02-28 04:13:11,104:      pdf_renderer.py:  470: printSegment: 1.82x speedup
+   DEBUG: 2026-02-28 04:13:11,104:      pdf_renderer.py:  470: printSegment:  (large gap to close)
+   DEBUG: 2026-02-28 04:13:11,105:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,106:      pdf_renderer.py:  470: printSegment: H200:
+   DEBUG: 2026-02-28 04:13:11,107:      pdf_renderer.py:  470: printSegment:  Current 57.2% → with DAE ~75.1% → 
+   DEBUG: 2026-02-28 04:13:11,108:      pdf_renderer.py:  470: printSegment: 1.31x speedup
+   DEBUG: 2026-02-28 04:13:11,108:      pdf_renderer.py:  470: printSegment:  from BW ceiling; 
+   DEBUG: 2026-02-28 04:13:11,109:      pdf_renderer.py:  470: printSegment: 1.62x from CPI
+   DEBUG: 2026-02-28 04:13:11,110:      pdf_renderer.py:  470: printSegment: reduction
+   DEBUG: 2026-02-28 04:13:11,111:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,117:      pdf_renderer.py:  470: printSegment: The CPI-based analysis (1.49--1.62x) provides a more direct estimate of DAE benefit since it is
+   DEBUG: 2026-02-28 04:13:11,118:      pdf_renderer.py:  470: printSegment: based on measured stall data rather than theoretical bandwidth models.
+   DEBUG: 2026-02-28 04:13:11,119:      pdf_renderer.py:  470: printSegment: 7.11 Cross-GPU DAE Impact Summary
+   DEBUG: 2026-02-28 04:13:11,120:      pdf_renderer.py:  470: printSegment: | GPU | Current % Peak BW | With DAE % Peak BW | DAE Benefit |
+   DEBUG: 2026-02-28 04:13:11,121:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,122:      pdf_renderer.py:  470: printSegment: |---|---|---|---|
+   DEBUG: 2026-02-28 04:13:11,123:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,125:      pdf_renderer.py:  470: printSegment: | B200 (8 TB/s, 64 warps) |
+   DEBUG: 2026-02-28 04:13:11,126:      pdf_renderer.py:  470: printSegment: 41.7% | ~100% (with depth≥2) | 
+   DEBUG: 2026-02-28 04:13:11,138:      pdf_renderer.py:  470: printSegment: Major
+   DEBUG: 2026-02-28 04:13:11,138:      pdf_renderer.py:  470: printSegment:  (2.4x) |
+   DEBUG: 2026-02-28 04:13:11,139:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,140:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,141:      pdf_renderer.py:  470: printSegment: H200 (4.8 TB/s, 64 warps)
+   DEBUG: 2026-02-28 04:13:11,142:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:11,143:      pdf_renderer.py:  470: printSegment: 57.2%
+   DEBUG: 2026-02-28 04:13:11,143:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:11,144:      pdf_renderer.py:  470: printSegment: ~100% (with depth≥2)
+   DEBUG: 2026-02-28 04:13:11,156:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:11,157:      pdf_renderer.py:  470: printSegment: Moderate-Major
+   DEBUG: 2026-02-28 04:13:11,158:      pdf_renderer.py:  470: printSegment:  (1.3-1.6x) |
+   DEBUG: 2026-02-28 04:13:11,159:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,160:      pdf_renderer.py:  470: printSegment: | H100 (3.35 TB/s, 64 warps) | ~60-70% (est.) | ~100% | Moderate (1.4-1.7x) |
+   DEBUG: 2026-02-28 04:13:11,161:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,164:      pdf_renderer.py:  470: printSegment: | RTX
+   DEBUG: 2026-02-28 04:13:11,165:      pdf_renderer.py:  470: printSegment: 4070 Ti SUPER (672 GB/s, 64 warps) | 95.4% | ~100% | Minimal (1.05x) |
+   DEBUG: 2026-02-28 04:13:11,167:      pdf_renderer.py:  470: printSegment: DAE provides the largest benefit on GPUs where bandwidth has outgrown warp-level parallelism
+   DEBUG: 2026-02-28 04:13:11,170:      pdf_renderer.py:  470: printSegment:  — exactly the
+   DEBUG: 2026-02-28 04:13:11,171:      pdf_renderer.py:  470: printSegment: trajectory of modern HBM-based datacenter GPUs (H100 → H200 → B200).
+   DEBUG: 2026-02-28 04:13:11,173:      pdf_renderer.py:  470: printSegment: 8. Proposed Optimizations
+   DEBUG: 2026-02-28 04:13:11,174:      pdf_renderer.py:  470: printSegment: | # | Optimization | Expected Impact | Difficulty | Details |
+   DEBUG: 2026-02-28 04:13:11,175:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,176:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:11,177:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,178:      pdf_renderer.py:  470: printSegment: | 1 | 
+   DEBUG: 2026-02-28 04:13:11,178:      pdf_renderer.py:  470: printSegment: Increase occupancy
+   DEBUG: 2026-02-28 04:13:11,188:      pdf_renderer.py:  470: printSegment:  (reduce
+   DEBUG: 2026-02-28 04:13:11,193:      pdf_renderer.py:  470: printSegment: registers) | 10-20% BW improvement | Medium | Current 46 regs/thread limits to 50% occupancy; reducing to 32
+   DEBUG: 2026-02-28 04:13:11,195:      pdf_renderer.py:  470: printSegment: would allow 100% occupancy, doubling available warps |
+   DEBUG: 2026-02-28 04:13:11,195:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,196:      pdf_renderer.py:  470: printSegment: | 2 | 
+   DEBUG: 2026-02-28 04:13:11,197:      pdf_renderer.py:  470: printSegment: INT32 indices
+   DEBUG: 2026-02-28 04:13:11,203:      pdf_renderer.py:  470: printSegment:  | ~31-33% less data movement | Low |
+   DEBUG: 2026-02-28 04:13:11,205:      pdf_renderer.py:  470: printSegment: PyTorch forces INT64; switching to INT32 reduces total bytes by 31-33% (see Section 9.3) |
+   DEBUG: 2026-02-28 04:13:11,205:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,206:      pdf_renderer.py:  470: printSegment: | 3 | 
+   DEBUG: 2026-02-28 04:13:11,207:      pdf_renderer.py:  470: printSegment: Format
+   DEBUG: 2026-02-28 04:13:11,208:      pdf_renderer.py:  470: printSegment: transformation
+   DEBUG: 2026-02-28 04:13:11,214:      pdf_renderer.py:  470: printSegment:  (BSR, SELL-C-sigma) | 10-30% improvement | Medium | Blocked formats amortize the
+   DEBUG: 2026-02-28 04:13:11,216:      pdf_renderer.py:  470: printSegment: dependent-load penalty across multiple x-vector lookups per column index |
+   DEBUG: 2026-02-28 04:13:11,217:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,217:      pdf_renderer.py:  470: printSegment: | 4 | 
+   DEBUG: 2026-02-28 04:13:11,218:      pdf_renderer.py:  470: printSegment: L2 residency control
+   DEBUG: 2026-02-28 04:13:11,223:      pdf_renderer.py:  470: printSegment:  | 5-15% for
+   DEBUG: 2026-02-28 04:13:11,225:      pdf_renderer.py:  470: printSegment: repeated SpMV | Low | Pin the x vector in L2 cache to reduce effective DRAM latency for x
+   DEBUG: 2026-02-28 04:13:11,226:      pdf_renderer.py:  470: printSegment: [
+   DEBUG: 2026-02-28 04:13:11,227:      pdf_renderer.py:  470: printSegment: col
+   DEBUG: 2026-02-28 04:13:11,227:      pdf_renderer.py:  470: printSegment: ]
+   DEBUG: 2026-02-28 04:13:11,228:      pdf_renderer.py:  470: printSegment:  accesses |
+   DEBUG: 2026-02-28 04:13:11,229:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,230:      pdf_renderer.py:  470: printSegment: | 5 | 
+   DEBUG: 2026-02-28 04:13:11,231:      pdf_renderer.py:  470: printSegment: DAE hardware
+   DEBUG: 2026-02-28 04:13:11,232:      pdf_renderer.py:  470: printSegment:  (hypothetical) | 
+   DEBUG: 2026-02-28 04:13:11,233:      pdf_renderer.py:  470: printSegment: 1.5-1.6x
+   DEBUG: 2026-02-28 04:13:11,235:      pdf_renderer.py:  470: printSegment:  | Very High | Requires hardware FIFO + ISA extensions + cuSPARSE
+   DEBUG: 2026-02-28 04:13:11,236:      pdf_renderer.py:  470: printSegment: kernel rewrite |
+   DEBUG: 2026-02-28 04:13:11,237:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,238:      pdf_renderer.py:  470: printSegment: | 6 | 
+   DEBUG: 2026-02-28 04:13:11,239:      pdf_renderer.py:  470: printSegment: Multiple vectors (SpMM)
+   DEBUG: 2026-02-28 04:13:11,246:      pdf_renderer.py:  470: printSegment:  | Near-linear scaling | Low | If y = A × X (multi-vector), each column
+   DEBUG: 2026-02-28 04:13:11,247:      pdf_renderer.py:  470: printSegment: index lookup amortizes across K vectors, effectively increasing AI by K× |
+   DEBUG: 2026-02-28 04:13:11,249:      pdf_renderer.py:  470: printSegment: 9. Benchmark Credibility
+   DEBUG: 2026-02-28 04:13:11,250:      pdf_renderer.py:  470: printSegment: 9.1 Suite Information
+   DEBUG: 2026-02-28 04:13:11,251:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,252:      pdf_renderer.py:  470: printSegment: Suite:
+   DEBUG: 2026-02-28 04:13:11,254:      pdf_renderer.py:  470: printSegment:  SuiteSparse Matrix Collection (formerly University of Florida Sparse Matrix Collection)
+   DEBUG: 2026-02-28 04:13:11,254:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,255:      pdf_renderer.py:  470: printSegment: Citation:
+   DEBUG: 2026-02-28 04:13:11,256:      pdf_renderer.py:  470: printSegment:  T.A. Davis and Y. Hu, 
+   DEBUG: 2026-02-28 04:13:11,256:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:11,257:      pdf_renderer.py:  470: printSegment: The University of Florida Sparse Matrix Collection,
+   DEBUG: 2026-02-28 04:13:11,257:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:11,259:      pdf_renderer.py:  470: printSegment:  ACM
+   DEBUG: 2026-02-28 04:13:11,260:      pdf_renderer.py:  470: printSegment: Transactions on Mathematical Software (TOMS), 38(1):1-25, 2011.
+   DEBUG: 2026-02-28 04:13:11,261:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,261:      pdf_renderer.py:  470: printSegment: Matrices used:
+   DEBUG: 2026-02-28 04:13:11,262:      pdf_renderer.py:  470: printSegment:  6 matrices spanning 3 orders of magnitude in NNZ, from 5 application domains
+   DEBUG: 2026-02-28 04:13:11,263:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,263:      pdf_renderer.py:  470: printSegment: Reproducibility:
+   DEBUG: 2026-02-28 04:13:11,264:      pdf_renderer.py:  470: printSegment:  All matrices are publicly available at https://sparse.tamu.edu/
+   DEBUG: 2026-02-28 04:13:11,265:      pdf_renderer.py:  470: printSegment: 9.2 Comparison to Published Literature
+   DEBUG: 2026-02-28 04:13:11,266:      pdf_renderer.py:  470: printSegment: Our measurements are consistent with published SpMV benchmarks on HBM GPUs:
+   DEBUG: 2026-02-28 04:13:11,267:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,268:      pdf_renderer.py:  470: printSegment: SpMV on A100 typically achieves 40-60% of peak BW for large matrices (Yang et al., SC
+   DEBUG: 2026-02-28 04:13:11,269:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,269:      pdf_renderer.py:  470: printSegment: 18)
+   DEBUG: 2026-02-28 04:13:11,270:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,271:      pdf_renderer.py:  470: printSegment: The trend of higher absolute BW but lower % utilization on newer GPUs is well-documented
+   DEBUG: 2026-02-28 04:13:11,272:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,272:      pdf_renderer.py:  470: printSegment: cuSPARSE
+   DEBUG: 2026-02-28 04:13:11,273:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,274:      pdf_renderer.py:  470: printSegment: s merge-based algorithm (Merrill 
+   DEBUG: 2026-02-28 04:13:11,274:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-28 04:13:11,275:      pdf_renderer.py:  470: printSegment:  Garland, PPoPP
+   DEBUG: 2026-02-28 04:13:11,275:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,277:      pdf_renderer.py:  470: printSegment: 16) is the standard
+   DEBUG: 2026-02-28 04:13:11,278:      pdf_renderer.py:  470: printSegment: high-performance CSR SpMV implementation
+   DEBUG: 2026-02-28 04:13:11,279:      pdf_renderer.py:  470: printSegment: 9.3 Baseline Limitations: INT64 Index Overhead
+   DEBUG: 2026-02-28 04:13:11,299:      pdf_renderer.py:  470: printSegment: PyTorch forces INT64 for all sparse CSR tensor indices, regardless of matrix dimensions. This is a framework
+   DEBUG: 2026-02-28 04:13:11,304:      pdf_renderer.py:  470: printSegment: limitation — all six matrices in this study have max dimensions of 5.56M rows/cols and max NNZ of 99.2M, both
+   DEBUG: 2026-02-28 04:13:11,305:      pdf_renderer.py:  470: printSegment: fitting comfortably in INT32 (max 2.1 billion).
+   DEBUG: 2026-02-28 04:13:11,305:      pdf_renderer.py:  470: printSegment: Impact on bytes moved:
+   DEBUG: 2026-02-28 04:13:11,307:      pdf_renderer.py:  470: printSegment: | Matrix | INT64 Bytes (MB) | INT32 Bytes (MB) | INT64 Waste (MB) | Waste % |
+   DEBUG: 2026-02-28 04:13:11,307:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,308:      pdf_renderer.py:  470: printSegment: |---|---|---|---|---|
+   DEBUG: 2026-02-28 04:13:11,309:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,310:      pdf_renderer.py:  470: printSegment: | webbase-1M |
+   DEBUG: 2026-02-28 04:13:11,311:      pdf_renderer.py:  470: printSegment: 57.3 | 40.8 | 16.4 | 28.7% |
+   DEBUG: 2026-02-28 04:13:11,312:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,313:      pdf_renderer.py:  470: printSegment: | cant | 49.3 | 33.1 | 16.3 | 33.0% |
+   DEBUG: 2026-02-28 04:13:11,313:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,314:      pdf_renderer.py:  470: printSegment: | pwtk | 144.0 | 96.6 | 47.4 | 32.9% |
+   DEBUG: 2026-02-28 04:13:11,315:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,316:      pdf_renderer.py:  470: printSegment: | ldoor | 577.3 |
+   DEBUG: 2026-02-28 04:13:11,317:      pdf_renderer.py:  470: printSegment: 387.4 | 189.9 | 32.9% |
+   DEBUG: 2026-02-28 04:13:11,318:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,319:      pdf_renderer.py:  470: printSegment: | circuit5M | 825.5 | 565.1 | 260.3 | 31.5% |
+   DEBUG: 2026-02-28 04:13:11,319:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,320:      pdf_renderer.py:  470: printSegment: | cage15 | 1,293.5 | 876.1 | 417.4 | 32.3% |
+   DEBUG: 2026-02-28 04:13:11,321:      pdf_renderer.py:  470: printSegment: Note:
+   DEBUG: 2026-02-28 04:13:11,322:      pdf_renderer.py:  470: printSegment:  Byte counts use the corrected y-vector formula (read + write = 8 bytes/row).
+   DEBUG: 2026-02-28 04:13:11,323:      pdf_renderer.py:  470: printSegment: Impact on arithmetic intensity:
+   DEBUG: 2026-02-28 04:13:11,324:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,325:      pdf_renderer.py:  470: printSegment: With INT64 indices: AI = 0.11--0.16 FLOP/byte
+   DEBUG: 2026-02-28 04:13:11,325:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,326:      pdf_renderer.py:  470: printSegment: With INT32 indices: AI = 0.15--0.24 FLOP/byte
+   DEBUG: 2026-02-28 04:13:11,327:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,328:      pdf_renderer.py:  470: printSegment: Either way, AI remains 
+   DEBUG: 2026-02-28 04:13:11,329:      pdf_renderer.py:  470: printSegment: 50--100x below the ridge point
+   DEBUG: 2026-02-28 04:13:11,331:      pdf_renderer.py:  470: printSegment:  (13.9 FLOP/byte) — SpMV is fundamentally
+   DEBUG: 2026-02-28 04:13:11,332:      pdf_renderer.py:  470: printSegment: memory-bound regardless of index width.
+   DEBUG: 2026-02-28 04:13:11,333:      pdf_renderer.py:  470: printSegment: Key implication for DAE analysis:
+   DEBUG: 2026-02-28 04:13:11,336:      pdf_renderer.py:  470: printSegment:  Even with optimal INT32 indices, SpMV remains deeply
+   DEBUG: 2026-02-28 04:13:11,337:      pdf_renderer.py:  470: printSegment: memory-latency-bound. The dependent load chain (
+   DEBUG: 2026-02-28 04:13:11,338:      pdf_renderer.py:  470: printSegment: col_indices[j]
+   DEBUG: 2026-02-28 04:13:11,339:      pdf_renderer.py:  470: printSegment:  → 
+   DEBUG: 2026-02-28 04:13:11,340:      pdf_renderer.py:  470: printSegment: x[col]
+   DEBUG: 2026-02-28 04:13:11,386:      pdf_renderer.py:  470: printSegment: ) exists regardless of index width;
+   DEBUG: 2026-02-28 04:13:11,419:      pdf_renderer.py:  470: printSegment: INT32 only reduces the cost of the first load by 50%. The DAE argument — that breaking the dependent load chain via
+   DEBUG: 2026-02-28 04:13:11,432:      pdf_renderer.py:  470: printSegment: hardware FIFOs would yield 1.3--1.6x speedup — holds equally for INT32 and INT64 implementations. In fact, with
+   DEBUG: 2026-02-28 04:13:11,435:      pdf_renderer.py:  470: printSegment: INT32 the kernel would be even more latency-dominated (less data to stream, same dependent latency), potentially
+   DEBUG: 2026-02-28 04:13:11,436:      pdf_renderer.py:  470: printSegment: making DAE 
+   DEBUG: 2026-02-28 04:13:11,437:      pdf_renderer.py:  470: printSegment: more
+   DEBUG: 2026-02-28 04:13:11,438:      pdf_renderer.py:  470: printSegment:  beneficial in relative terms.
+   DEBUG: 2026-02-28 04:13:11,440:      pdf_renderer.py:  470: printSegment: 10. Visualizations
+   DEBUG: 2026-02-28 04:13:11,441:      pdf_renderer.py:  470: printSegment: All plots are in the 
+   DEBUG: 2026-02-28 04:13:11,442:      pdf_renderer.py:  470: printSegment: analysis/
+   DEBUG: 2026-02-28 04:13:11,443:      pdf_renderer.py:  470: printSegment:  directory:
+   DEBUG: 2026-02-28 04:13:11,444:      pdf_renderer.py:  470: printSegment: | File | Description |
+   DEBUG: 2026-02-28 04:13:11,445:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,446:      pdf_renderer.py:  470: printSegment: |---|---|
+   DEBUG: 2026-02-28 04:13:11,446:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,447:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,448:      pdf_renderer.py:  470: printSegment: spmv_roofline_h200.png
+   DEBUG: 2026-02-28 04:13:11,449:      pdf_renderer.py:  470: printSegment:  | Roofline model with all 6 matrices |
+   DEBUG: 2026-02-28 04:13:11,450:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,451:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,452:      pdf_renderer.py:  470: printSegment: spmv_bw_efficiency.png
+   DEBUG: 2026-02-28 04:13:11,453:      pdf_renderer.py:  470: printSegment:  | Bandwidth efficiency bar chart |
+   DEBUG: 2026-02-28 04:13:11,454:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,455:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,456:      pdf_renderer.py:  470: printSegment: spmv_stall_breakdown_cage15.png
+   DEBUG: 2026-02-28 04:13:11,457:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:11,458:      pdf_renderer.py:  470: printSegment: Warp stall pie chart (cage15) |
+   DEBUG: 2026-02-28 04:13:11,459:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,460:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,461:      pdf_renderer.py:  470: printSegment: spmv_nnz_vs_bw.png
+   DEBUG: 2026-02-28 04:13:11,462:      pdf_renderer.py:  470: printSegment:  | NNZ vs effective bandwidth scatter |
+   DEBUG: 2026-02-28 04:13:11,463:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,464:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,465:      pdf_renderer.py:  470: printSegment: spmv_stall_comparison.png
+   DEBUG: 2026-02-28 04:13:11,466:      pdf_renderer.py:  470: printSegment:  | Comparative stall breakdown (3 matrices) |
+   DEBUG: 2026-02-28 04:13:11,468:      pdf_renderer.py:  470: printSegment: 11. Raw Data Files
+   DEBUG: 2026-02-28 04:13:11,469:      pdf_renderer.py:  470: printSegment: | File | Description |
+   DEBUG: 2026-02-28 04:13:11,470:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,470:      pdf_renderer.py:  470: printSegment: |---|---|
+   DEBUG: 2026-02-28 04:13:11,471:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,471:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,472:      pdf_renderer.py:  470: printSegment: analysis/spmv_profiling_results.json
+   DEBUG: 2026-02-28 04:13:11,473:      pdf_renderer.py:  470: printSegment:  | Full timing sweep results (all 6
+   DEBUG: 2026-02-28 04:13:11,474:      pdf_renderer.py:  470: printSegment: matrices) |
+   DEBUG: 2026-02-28 04:13:11,474:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,475:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,475:      pdf_renderer.py:  470: printSegment: analysis/ncu_all_matrices.json
+   DEBUG: 2026-02-28 04:13:11,476:      pdf_renderer.py:  470: printSegment:  | NCU detailed metrics (cant, ldoor, cage15) |
+   DEBUG: 2026-02-28 04:13:11,477:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,477:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,478:      pdf_renderer.py:  470: printSegment: analysis/ncu_stall_breakdown.json
+   DEBUG: 2026-02-28 04:13:11,479:      pdf_renderer.py:  470: printSegment:  | Warp stall ratio breakdown from NCU raw metrics |
+   DEBUG: 2026-02-28 04:13:11,479:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,480:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,481:      pdf_renderer.py:  470: printSegment: analysis/first_principles_analysis.json
+   DEBUG: 2026-02-28 04:13:11,481:      pdf_renderer.py:  470: printSegment:  | Physical floor and Little
+   DEBUG: 2026-02-28 04:13:11,482:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,483:      pdf_renderer.py:  470: printSegment: s Law computations |
+   DEBUG: 2026-02-28 04:13:11,483:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,484:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,484:      pdf_renderer.py:  470: printSegment: analysis/nsys_kernel_summary.txt
+   DEBUG: 2026-02-28 04:13:11,485:      pdf_renderer.py:  470: printSegment:  | nsys kernel breakdown for cage15 |
+   DEBUG: 2026-02-28 04:13:11,486:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,486:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,487:      pdf_renderer.py:  470: printSegment: profiles/spmv_ncu_{cant,ldoor,cage15}.ncu-rep
+   DEBUG: 2026-02-28 04:13:11,488:      pdf_renderer.py:  470: printSegment:  | Binary NCU profiles |
+   DEBUG: 2026-02-28 04:13:11,488:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,489:      pdf_renderer.py:  470: printSegment: | 
+   DEBUG: 2026-02-28 04:13:11,490:      pdf_renderer.py:  470: printSegment: profiles/spmv_nsys_cage15.nsys-rep
+   DEBUG: 2026-02-28 04:13:11,490:      pdf_renderer.py:  470: printSegment:  | Binary nsys profile |
+   DEBUG: 2026-02-28 04:13:11,492:      pdf_renderer.py:  470: printSegment: 12. Verification and Sensitivity Analysis
+   DEBUG: 2026-02-28 04:13:11,493:      pdf_renderer.py:  470: printSegment: This section documents the verification process applied to strengthen the analysis, following the principle of 
+   DEBUG: 2026-02-28 04:13:11,494:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:11,494:      pdf_renderer.py:  470: printSegment: doubt
+   DEBUG: 2026-02-28 04:13:11,495:      pdf_renderer.py:  470: printSegment: and verify.
+   DEBUG: 2026-02-28 04:13:11,496:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:11,496:      pdf_renderer.py:  470: printSegment: 12.1 What Was Verified and Confirmed
+   DEBUG: 2026-02-28 04:13:11,497:      pdf_renderer.py:  470: printSegment: | Claim | Verification Method | Result |
+   DEBUG: 2026-02-28 04:13:11,498:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,499:      pdf_renderer.py:  470: printSegment: |---|---|---|
+   DEBUG: 2026-02-28 04:13:11,499:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,500:      pdf_renderer.py:  470: printSegment: | Kernel is 
+   DEBUG: 2026-02-28 04:13:11,501:      pdf_renderer.py:  470: printSegment: csrmv_v3_kernel
+   DEBUG: 2026-02-28 04:13:11,503:      pdf_renderer.py:  470: printSegment:  (merge-based CSR) | nsys kernel
+   DEBUG: 2026-02-28 04:13:11,503:      pdf_renderer.py:  470: printSegment: traces, NCU kernel name | 
+   DEBUG: 2026-02-28 04:13:11,504:      pdf_renderer.py:  470: printSegment: Confirmed
+   DEBUG: 2026-02-28 04:13:11,505:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:11,506:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,506:      pdf_renderer.py:  470: printSegment: | cuSPARSE backend for 
+   DEBUG: 2026-02-28 04:13:11,507:      pdf_renderer.py:  470: printSegment: torch.sparse.mm
+   DEBUG: 2026-02-28 04:13:11,509:      pdf_renderer.py:  470: printSegment:  | nsys shows cuSPARSE
+   DEBUG: 2026-02-28 04:13:11,509:      pdf_renderer.py:  470: printSegment: library calls | 
+   DEBUG: 2026-02-28 04:13:11,510:      pdf_renderer.py:  470: printSegment: Confirmed
+   DEBUG: 2026-02-28 04:13:11,511:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:11,511:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,512:      pdf_renderer.py:  470: printSegment: | H200: 132 SMs, CC 9.0, 4800 GB/s, 141 GB | NVIDIA specs, 
+   DEBUG: 2026-02-28 04:13:11,513:      pdf_renderer.py:  470: printSegment: torch.cuda.get_device_properties
+   DEBUG: 2026-02-28 04:13:11,514:      pdf_renderer.py:  470: printSegment:  | 
+   DEBUG: 2026-02-28 04:13:11,515:      pdf_renderer.py:  470: printSegment: Confirmed
+   DEBUG: 2026-02-28 04:13:11,516:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:11,516:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,520:      pdf_renderer.py:  470: printSegment: | Block size 32, 46 regs/thread, 50% occupancy |
+   DEBUG: 2026-02-28 04:13:11,521:      pdf_renderer.py:  470: printSegment: NCU metrics for all three profiled matrices | 
+   DEBUG: 2026-02-28 04:13:11,521:      pdf_renderer.py:  470: printSegment: Confirmed
+   DEBUG: 2026-02-28 04:13:11,522:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:11,523:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,525:      pdf_renderer.py:  470: printSegment: | cuSPARSE is a strong baseline for CSR SpMV |
+   DEBUG: 2026-02-28 04:13:11,526:      pdf_renderer.py:  470: printSegment: Literature review (Merrill 
+   DEBUG: 2026-02-28 04:13:11,526:      pdf_renderer.py:  470: printSegment: &
+   DEBUG: 2026-02-28 04:13:11,527:      pdf_renderer.py:  470: printSegment:  Garland, PPoPP
+   DEBUG: 2026-02-28 04:13:11,528:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,529:      pdf_renderer.py:  470: printSegment: 16) | 
+   DEBUG: 2026-02-28 04:13:11,529:      pdf_renderer.py:  470: printSegment: Confirmed
+   DEBUG: 2026-02-28 04:13:11,530:      pdf_renderer.py:  470: printSegment:  — merge-based is SOTA |
+   DEBUG: 2026-02-28 04:13:11,531:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,534:      pdf_renderer.py:  470: printSegment: | FP32 peak ~66.9 TFLOPS |
+   DEBUG: 2026-02-28 04:13:11,535:      pdf_renderer.py:  470: printSegment: SM count × clock × FMA ops per cycle | 
+   DEBUG: 2026-02-28 04:13:11,536:      pdf_renderer.py:  470: printSegment: Confirmed
+   DEBUG: 2026-02-28 04:13:11,536:      pdf_renderer.py:  470: printSegment:  |
+   DEBUG: 2026-02-28 04:13:11,537:      pdf_renderer.py:  470: printSegment: 12.2 What Was Corrected
+   DEBUG: 2026-02-28 04:13:11,538:      pdf_renderer.py:  470: printSegment: | Issue | Original | Corrected | Impact |
+   DEBUG: 2026-02-28 04:13:11,539:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,540:      pdf_renderer.py:  470: printSegment: |---|---|---|---|
+   DEBUG: 2026-02-28 04:13:11,541:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,541:      pdf_renderer.py:  470: printSegment: | Y-vector byte count | 
+   DEBUG: 2026-02-28 04:13:11,542:      pdf_renderer.py:  470: printSegment: rows × 4
+   DEBUG: 2026-02-28 04:13:11,543:      pdf_renderer.py:  470: printSegment:  (write-only) | 
+   DEBUG: 2026-02-28 04:13:11,544:      pdf_renderer.py:  470: printSegment: rows × 8
+   DEBUG: 2026-02-28 04:13:11,546:      pdf_renderer.py:  470: printSegment:  (read
+   DEBUG: 2026-02-28 04:13:11,548:      pdf_renderer.py:  470: printSegment: + write) | ~1.6% undercount; negligible effect on BW numbers |
+   DEBUG: 2026-02-28 04:13:11,548:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,552:      pdf_renderer.py:  470: printSegment: | DRAM latency estimate | 350 ns | 300 ns (primary,
+   DEBUG: 2026-02-28 04:13:11,553:      pdf_renderer.py:  470: printSegment: with 200--400 ns sensitivity) | Moderate — changes Little
+   DEBUG: 2026-02-28 04:13:11,554:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,555:      pdf_renderer.py:  470: printSegment: s Law ceiling from 64.4% to 75.1% |
+   DEBUG: 2026-02-28 04:13:11,556:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,564:      pdf_renderer.py:  470: printSegment: | INT64 overhead not
+   DEBUG: 2026-02-28 04:13:11,567:      pdf_renderer.py:  470: printSegment: discussed | Not addressed | New Section 9.3 with full analysis | Significant — documents 31--33% data waste from
+   DEBUG: 2026-02-28 04:13:11,568:      pdf_renderer.py:  470: printSegment: framework limitation |
+   DEBUG: 2026-02-28 04:13:11,569:      pdf_renderer.py:  470: printSegment: 12.3 DRAM Latency Sensitivity
+   DEBUG: 2026-02-28 04:13:11,570:      pdf_renderer.py:  470: printSegment: The Little
+   DEBUG: 2026-02-28 04:13:11,571:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,575:      pdf_renderer.py:  470: printSegment: s Law analysis depends on DRAM latency, which is uncertain for HBM3e under SpMV access patterns.
+   DEBUG: 2026-02-28 04:13:11,576:      pdf_renderer.py:  470: printSegment: Here is how key derived quantities change:
+   DEBUG: 2026-02-28 04:13:11,577:      pdf_renderer.py:  470: printSegment: | Quantity | 200 ns | 300 ns (primary) | 400 ns |
+   DEBUG: 2026-02-28 04:13:11,578:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,579:      pdf_renderer.py:  470: printSegment: |---|---|---|---|
+   DEBUG: 2026-02-28 04:13:11,580:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,581:      pdf_renderer.py:  470: printSegment: | Required warps/SM | 56.8 | 85.2 | 113.6 |
+   DEBUG: 2026-02-28 04:13:11,582:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,583:      pdf_renderer.py:  470: printSegment: | Little
+   DEBUG: 2026-02-28 04:13:11,584:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,587:      pdf_renderer.py:  470: printSegment: s Law
+   DEBUG: 2026-02-28 04:13:11,588:      pdf_renderer.py:  470: printSegment: BW ceiling | 100% (4,800 GB/s) | 75.1% (3,605 GB/s) | 56.3% (2,703 GB/s) |
+   DEBUG: 2026-02-28 04:13:11,589:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,593:      pdf_renderer.py:  470: printSegment: | Dep-chain BW ceiling | 56.3%
+   DEBUG: 2026-02-28 04:13:11,594:      pdf_renderer.py:  470: printSegment: (2,703 GB/s) | 37.5% (1,802 GB/s) | 28.2% (1,352 GB/s) |
+   DEBUG: 2026-02-28 04:13:11,595:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,598:      pdf_renderer.py:  470: printSegment: | DAE BW ceiling (depth≥2) | 100% (4,800 GB/s) | 100%
+   DEBUG: 2026-02-28 04:13:11,599:      pdf_renderer.py:  470: printSegment: (4,800 GB/s) | 100% (4,800 GB/s) |
+   DEBUG: 2026-02-28 04:13:11,600:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,601:      pdf_renderer.py:  470: printSegment: | DAE speedup (BW-based, cage15) | 1.75x | 1.31x | 0.98x |
+   DEBUG: 2026-02-28 04:13:11,602:      pdf_renderer.py:  470: printSegment:  
+   DEBUG: 2026-02-28 04:13:11,604:      pdf_renderer.py:  470: printSegment: | DAE speedup
+   DEBUG: 2026-02-28 04:13:11,605:      pdf_renderer.py:  470: printSegment: (CPI-based) | 1.49--1.62x | 1.49--1.62x | 1.49--1.62x |
+   DEBUG: 2026-02-28 04:13:11,606:      pdf_renderer.py:  470: printSegment: Key observations:
+   DEBUG: 2026-02-28 04:13:11,607:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,609:      pdf_renderer.py:  470: printSegment: The CPI-based DAE speedup (1.49--1.62x) is 
+   DEBUG: 2026-02-28 04:13:11,610:      pdf_renderer.py:  470: printSegment: independent of the latency assumption
+   DEBUG: 2026-02-28 04:13:11,612:      pdf_renderer.py:  470: printSegment: , since it is
+   DEBUG: 2026-02-28 04:13:11,614:      pdf_renderer.py:  470: printSegment: derived directly from measured NCU warp stall data.
+   DEBUG: 2026-02-28 04:13:11,615:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,628:      pdf_renderer.py:  470: printSegment: The BW-based analysis varies with latency, but DAE always provides benefit at 200--300 ns. At
+   DEBUG: 2026-02-28 04:13:11,632:      pdf_renderer.py:  470: printSegment: 400 ns, the GPU is so warp-starved that even DAE cannot fully saturate bandwidth, but the CPI
+   DEBUG: 2026-02-28 04:13:11,633:      pdf_renderer.py:  470: printSegment: reduction still yields 1.5x+ benefit.
+   DEBUG: 2026-02-28 04:13:11,634:      pdf_renderer.py:  470: printSegment: l
+   DEBUG: 2026-02-28 04:13:11,636:      pdf_renderer.py:  470: printSegment: Our best measurement (ldoor at 60.8%) is most consistent with effective latency in the 300--400 ns
+   DEBUG: 2026-02-28 04:13:11,637:      pdf_renderer.py:  470: printSegment: range.
+   DEBUG: 2026-02-28 04:13:11,638:      pdf_renderer.py:  470: printSegment: 12.4 Robustness of Conclusions
+   DEBUG: 2026-02-28 04:13:11,640:      pdf_renderer.py:  470: printSegment: All major conclusions in this report are robust to the identified uncertainties:
+   DEBUG: 2026-02-28 04:13:11,640:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-28 04:13:11,641:      pdf_renderer.py:  470: printSegment: SpMV is memory-latency-bound
+   DEBUG: 2026-02-28 04:13:11,642:      pdf_renderer.py:  470: printSegment:  — holds for any DRAM latency in the 200--400 ns range.
+   DEBUG: 2026-02-28 04:13:11,643:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-28 04:13:11,643:      pdf_renderer.py:  470: printSegment: Long Scoreboard stalls dominate
+   DEBUG: 2026-02-28 04:13:11,644:      pdf_renderer.py:  470: printSegment:  — directly measured by NCU, independent of latency assumptions.
+   DEBUG: 2026-02-28 04:13:11,645:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-28 04:13:11,646:      pdf_renderer.py:  470: printSegment: DAE would provide 1.3--1.6x speedup
+   DEBUG: 2026-02-28 04:13:11,650:      pdf_renderer.py:  470: printSegment:  — CPI-based estimate is assumption-free; BW-based estimate
+   DEBUG: 2026-02-28 04:13:11,651:      pdf_renderer.py:  470: printSegment: varies with latency but remains positive for all plausible values.
+   DEBUG: 2026-02-28 04:13:11,651:      pdf_renderer.py:  470: printSegment:  4 
+   DEBUG: 2026-02-28 04:13:11,652:      pdf_renderer.py:  470: printSegment: INT32 would reduce data movement by ~32%
+   DEBUG: 2026-02-28 04:13:11,653:      pdf_renderer.py:  470: printSegment:  — arithmetic fact, independent of performance model.
+   DEBUG: 2026-02-28 04:13:11,654:      pdf_renderer.py:  470: printSegment:  5 
+   DEBUG: 2026-02-28 04:13:11,655:      pdf_renderer.py:  470: printSegment: The merge-based cuSPARSE kernel is a strong baseline
+   DEBUG: 2026-02-28 04:13:11,655:      pdf_renderer.py:  470: printSegment:  — confirmed by literature and NCU
+   DEBUG: 2026-02-28 04:13:11,656:      pdf_renderer.py:  470: printSegment: analysis.
+   DEBUG: 2026-02-28 04:13:11,657:      pdf_renderer.py:  470: printSegment: 13. Conclusions
+   DEBUG: 2026-02-28 04:13:11,658:      pdf_renderer.py:  470: printSegment:  1 
+   DEBUG: 2026-02-28 04:13:11,659:      pdf_renderer.py:  470: printSegment: SpMV on H200 achieves 25--61% of peak memory bandwidth.
+   DEBUG: 2026-02-28 04:13:11,663:      pdf_renderer.py:  470: printSegment:  The best case (ldoor, 46.5M
+   DEBUG: 2026-02-28 04:13:11,664:      pdf_renderer.py:  470: printSegment: NNZ) reaches 2,920 GB/s out of 4,800 GB/s available. This is better than the B200
+   DEBUG: 2026-02-28 04:13:11,665:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,667:      pdf_renderer.py:  470: printSegment: s 10.7--41.7%
+   DEBUG: 2026-02-28 04:13:11,668:      pdf_renderer.py:  470: printSegment: utilization, but still leaves significant bandwidth unused.
+   DEBUG: 2026-02-28 04:13:11,668:      pdf_renderer.py:  470: printSegment:  2 
+   DEBUG: 2026-02-28 04:13:11,669:      pdf_renderer.py:  470: printSegment: The root cause is a latency-bandwidth mismatch, confirmed by NCU.
+   DEBUG: 2026-02-28 04:13:11,670:      pdf_renderer.py:  470: printSegment:  Little
+   DEBUG: 2026-02-28 04:13:11,671:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,673:      pdf_renderer.py:  470: printSegment: s Law requires ~85
+   DEBUG: 2026-02-28 04:13:11,674:      pdf_renderer.py:  470: printSegment: warps/SM (at 300 ns DRAM latency) to saturate the H200
+   DEBUG: 2026-02-28 04:13:11,675:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,678:      pdf_renderer.py:  470: printSegment: s HBM3e bandwidth, but the hardware
+   DEBUG: 2026-02-28 04:13:11,679:      pdf_renderer.py:  470: printSegment: limit is 64 warps/SM. NCU profiling shows the dominant stall is 
+   DEBUG: 2026-02-28 04:13:11,681:      pdf_renderer.py:  470: printSegment: Long Scoreboard (L1TEX) at
+   DEBUG: 2026-02-28 04:13:11,681:      pdf_renderer.py:  470: printSegment: 33--38% of CPI
+   DEBUG: 2026-02-28 04:13:11,687:      pdf_renderer.py:  470: printSegment: , directly caused by the dependent load chain in CSR SpMV. These conclusions are
+   DEBUG: 2026-02-28 04:13:11,688:      pdf_renderer.py:  470: printSegment: robust across the 200--400 ns latency uncertainty range (see Section 12.3).
+   DEBUG: 2026-02-28 04:13:11,689:      pdf_renderer.py:  470: printSegment:  3 
+   DEBUG: 2026-02-28 04:13:11,690:      pdf_renderer.py:  470: printSegment: NCU provides evidence the B200 report could not.
+   DEBUG: 2026-02-28 04:13:11,705:      pdf_renderer.py:  470: printSegment:  Unlike the prior B200 analysis (which relied
+   DEBUG: 2026-02-28 04:13:11,713:      pdf_renderer.py:  470: printSegment: on nsys + first-principles reasoning), this H200 study includes warp stall breakdowns from NCU,
+   DEBUG: 2026-02-28 04:13:11,715:      pdf_renderer.py:  470: printSegment: quantitatively confirming that Long Scoreboard stalls dominate and that the kernel is 
+   DEBUG: 2026-02-28 04:13:11,716:      pdf_renderer.py:  470: printSegment: latency-bound, not bandwidth-bound
+   DEBUG: 2026-02-28 04:13:11,717:      pdf_renderer.py:  470: printSegment:  — despite being a 
+   DEBUG: 2026-02-28 04:13:11,717:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:11,718:      pdf_renderer.py:  470: printSegment: memory-bound
+   DEBUG: 2026-02-28 04:13:11,719:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:11,719:      pdf_renderer.py:  470: printSegment:  workload by roofline
+   DEBUG: 2026-02-28 04:13:11,720:      pdf_renderer.py:  470: printSegment: classification.
+   DEBUG: 2026-02-28 04:13:11,721:      pdf_renderer.py:  470: printSegment:  4 
+   DEBUG: 2026-02-28 04:13:11,722:      pdf_renderer.py:  470: printSegment: DAE directly addresses the measured bottleneck.
+   DEBUG: 2026-02-28 04:13:11,725:      pdf_renderer.py:  470: printSegment:  The Long Scoreboard stall at 33--38% is
+   DEBUG: 2026-02-28 04:13:11,726:      pdf_renderer.py:  470: printSegment: exactly what DAE eliminates. The CPI-based analysis predicts 
+   DEBUG: 2026-02-28 04:13:11,727:      pdf_renderer.py:  470: printSegment: 1.49--1.62x speedup
+   DEBUG: 2026-02-28 04:13:11,737:      pdf_renderer.py:  470: printSegment:  from a
+   DEBUG: 2026-02-28 04:13:11,744:      pdf_renderer.py:  470: printSegment: hypothetical DAE unit. A minimal FIFO depth of 2 entries per warp would theoretically allow
+   DEBUG: 2026-02-28 04:13:11,745:      pdf_renderer.py:  470: printSegment: near-100% bandwidth utilization, at a cost of only 0.13 MB of SRAM.
+   DEBUG: 2026-02-28 04:13:11,746:      pdf_renderer.py:  470: printSegment:  5 
+   DEBUG: 2026-02-28 04:13:11,747:      pdf_renderer.py:  470: printSegment: The H200 sits in a 
+   DEBUG: 2026-02-28 04:13:11,747:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:11,748:      pdf_renderer.py:  470: printSegment: moderate-major benefit
+   DEBUG: 2026-02-28 04:13:11,749:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2026-02-28 04:13:11,750:      pdf_renderer.py:  470: printSegment:  zone for DAE.
+   DEBUG: 2026-02-28 04:13:11,785:      pdf_renderer.py:  470: printSegment:  It achieves higher % peak BW than
+   DEBUG: 2026-02-28 04:13:11,810:      pdf_renderer.py:  470: printSegment: the B200 (57% vs 42%), so the DAE benefit is smaller in absolute terms. But the warp deficit (~21
+   DEBUG: 2026-02-28 04:13:11,822:      pdf_renderer.py:  470: printSegment: warps/SM at 300 ns) is still substantial, and the 1.3--1.6x speedup from eliminating dependent load
+   DEBUG: 2026-02-28 04:13:11,825:      pdf_renderer.py:  470: printSegment: chain stalls is significant. As GPU bandwidth continues to scale faster than latency improvements,
+   DEBUG: 2026-02-28 04:13:11,826:      pdf_renderer.py:  470: printSegment: DAE becomes increasingly valuable.
+   DEBUG: 2026-02-28 04:13:11,827:      pdf_renderer.py:  470: printSegment:  6 
+   DEBUG: 2026-02-28 04:13:11,828:      pdf_renderer.py:  470: printSegment: INT64 index overhead wastes ~32% of data movement.
+   DEBUG: 2026-02-28 04:13:11,851:      pdf_renderer.py:  470: printSegment:  PyTorch forces INT64 indices even
+   DEBUG: 2026-02-28 04:13:11,866:      pdf_renderer.py:  470: printSegment: though all matrices fit in INT32. This is a framework limitation, not an algorithmic necessity. Even
+   DEBUG: 2026-02-28 04:13:11,872:      pdf_renderer.py:  470: printSegment: with INT32, SpMV remains deeply memory-latency-bound (AI = 0.15--0.24 FLOP/byte vs ridge
+   DEBUG: 2026-02-28 04:13:11,873:      pdf_renderer.py:  470: printSegment: point 13.9), reinforcing the case for DAE (see Section 9.3).
+   DEBUG: 2026-02-28 04:13:11,874:      pdf_renderer.py:  470: printSegment:  7 
+   DEBUG: 2026-02-28 04:13:11,875:      pdf_renderer.py:  470: printSegment: Practical software optimizations exist.
+   DEBUG: 2026-02-28 04:13:11,894:      pdf_renderer.py:  470: printSegment:  Without hardware changes: (a) reducing register pressure
+   DEBUG: 2026-02-28 04:13:11,905:      pdf_renderer.py:  470: printSegment: to increase occupancy from 50% to 100% could provide ~1.3x speedup; (b) switching to INT32
+   DEBUG: 2026-02-28 04:13:11,907:      pdf_renderer.py:  470: printSegment: indices would reduce data movement by ~32%; (c) blocked sparse formats (BSR) can amortize the
+   DEBUG: 2026-02-28 04:13:11,908:      pdf_renderer.py:  470: printSegment: dependent-load penalty.
+   DEBUG: 2026-02-28 04:13:11,909:      pdf_renderer.py:  470: printSegment:  8 
+   DEBUG: 2026-02-28 04:13:11,910:      pdf_renderer.py:  470: printSegment: DAE benefits extend beyond SpMV
+   DEBUG: 2026-02-28 04:13:11,918:      pdf_renderer.py:  470: printSegment:  to any workload with indirect/pointer-chasing memory access
+   DEBUG: 2026-02-28 04:13:11,920:      pdf_renderer.py:  470: printSegment: patterns: graph algorithms (BFS, PageRank), hash table lookups, tree traversals, and sparse neural
+   DEBUG: 2026-02-28 04:13:11,921:      pdf_renderer.py:  470: printSegment: network inference.
+   DEBUG: 2026-02-28 04:13:11,936:      pdf_renderer.py:  470: printSegment: This analysis is grounded in measured CUDA event timing, nsys kernel profiling, and NCU warp-level analysis on
+   DEBUG: 2026-02-28 04:13:11,940:      pdf_renderer.py:  470: printSegment: NVIDIA H200 (Hopper), using 6 matrices from the SuiteSparse Matrix Collection. All performance projections are
+   DEBUG: 2026-02-28 04:13:11,941:      pdf_renderer.py:  470: printSegment: derived from first-principles (Little
+   DEBUG: 2026-02-28 04:13:11,941:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2026-02-28 04:13:11,947:      pdf_renderer.py:  470: printSegment: s Law) applied to measured data. The analysis has been verified and
+   DEBUG: 2026-02-28 04:13:11,948:      pdf_renderer.py:  470: printSegment: strengthened through systematic doubt-and-verify review, with corrections documented in Section 12.
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 0, [1, 'SpMV Performance Analysis on NVIDIA H200 GPU', 1, 68.0]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 1, [2, '1. Executive Summary', 1, 160.0]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 2, [2, '2. Methodology', 1, 391.6]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 3, [3, '2.1 Hardware Platform', 1, 424.8]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 4, [3, '2.2 Software Stack', 1, 519.6]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 5, [3, '2.3 Benchmark Suite', 1, 620.4]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 6, [3, '2.4 Measurement Protocol', 2, 152.4]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 7, [3, '2.5 Byte Count Calculation', 2, 265.2]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 8, [2, '3. Performance Results', 2, 510.4]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 9, [3, '3.1 Timing and Throughput', 2, 543.5999999999999]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 10, [3, '3.2 nsys Kernel Breakdown', 2, 668.3999999999999]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 11, [3, '3.3 Timing Stability', 3, 152.4]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 12, [2, '4. NCU Kernel Analysis', 3, 241.60000000000002]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 13, [3, '4.1 Top-Level Metrics (csrmv', 3, 274.8]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 14, [3, '4.2 Warp Stall Breakdown', 3, 483.59999999999997]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 15, [3, '4.3 Memory Access Efficiency', 3, 704.4]
+   DEBUG: 2026-02-28 04:13:11,949:      pdf_renderer.py:   53: 16, [3, '4.4 NCU Rule Summary', 4, 170.4]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 17, [3, '4.5 Baseline Validation', 4, 313.2]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 18, [2, '5. First-Principles Analysis', 4, 594.3999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 19, [3, '5.1 Physical Floor', 4, 627.5999999999998]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 20, [3, '5.2 Arithmetic Intensity', 5, 206.4]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 21, [3, '5.3 Little', 5, 307.2]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 22, [4, 'DRAM Latency Sensitivity Analysis', 5, 587.5999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 23, [3, '5.4 The Dependent Load Chain Penalty', 6, 122.4]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 24, [4, 'Why ldoor Exceeds the Naive Dep-Chain Ceiling', 6, 546.8]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 25, [3, '5.5 Gap Decomposition', 7, 230.4]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 26, [3, '5.6 Root Cause Summary', 7, 409.2]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 27, [2, '6. Roofline Analysis', 8, 70.0]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 28, [3, '6.1 Roofline Model', 8, 103.19999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 29, [3, '6.2 Bandwidth Utilization Trend', 8, 228.0]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 30, [2, '7. Decoupled Access-Execute (DAE) Analysis for H200', 8, 353.2]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 31, [3, '7.1 What is DAE?', 8, 386.4]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 32, [3, '7.2 Why DAE Exists — The Latency Hiding Gap', 8, 535.1999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 33, [3, '7.3 DAE vs Current GPU Latency Hiding', 8, 701.9999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 34, [3, '7.4 NCU Evidence: The DAE-Relevant Bottleneck', 9, 248.39999999999998]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 35, [3, '7.5 What DAE Would Fix on H200', 9, 499.19999999999993]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 36, [3, '7.6 Performance Ceiling With DAE on H200', 9, 647.9999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 37, [3, '7.7 Predicted Speedup by Matrix', 10, 104.4]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 38, [3, '7.8 FIFO Depth Analysis for H200', 10, 313.2]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 39, [3, '7.9 FIFO Depth vs Bandwidth Utilization Curve', 10, 575.9999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 40, [3, '7.10 H200 vs B200: DAE Impact Comparison', 11, 170.4]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 41, [3, '7.11 Cross-GPU DAE Impact Summary', 11, 415.2]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 42, [2, '8. Proposed Optimizations', 11, 540.3999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 43, [2, '9. Benchmark Credibility', 12, 70.0]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 44, [3, '9.1 Suite Information', 12, 103.19999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 45, [3, '9.2 Comparison to Published Literature', 12, 204.0]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 46, [3, '9.3 Baseline Limitations: INT64 Index Overhead', 12, 310.79999999999995]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 47, [2, '10. Visualizations', 12, 627.9999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 48, [2, '11. Raw Data Files', 13, 98.8]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 49, [2, '12. Verification and Sensitivity Analysis', 13, 234.4]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 50, [3, '12.1 What Was Verified and Confirmed', 13, 297.59999999999997]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 51, [3, '12.2 What Was Corrected', 13, 416.3999999999999]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 52, [3, '12.3 DRAM Latency Sensitivity', 13, 511.19999999999993]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 53, [3, '12.4 Robustness of Conclusions', 14, 104.4]
+   DEBUG: 2026-02-28 04:13:11,950:      pdf_renderer.py:   53: 54, [2, '13. Conclusions', 14, 259.6]

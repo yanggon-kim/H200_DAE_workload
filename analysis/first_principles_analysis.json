@@ -1,0 +1,80 @@
+{
+  "h200_specs": {
+    "peak_bw_gbs": 4800,
+    "peak_fp32_tflops": 66.9,
+    "sm_count": 132,
+    "sm_clock_mhz": 1980,
+    "warps_per_sm_max": 64,
+    "ridge_point": 13.9375,
+    "hbm_latency_ns": 300,
+    "hbm_latency_note": "Conservative estimate for HBM3e; GH200 docs cite 'under 300 ns'. See sensitivity analysis in report for 200/300/400 ns."
+  },
+  "little_law": {
+    "bytes_per_warp_access": 128,
+    "outstanding_bytes_total": 1440000,
+    "warps_required_total": 11250.0,
+    "warps_per_sm_required": 85.22727272727273,
+    "warps_required_dep_total": 22500.0,
+    "warps_per_sm_dep_required": 170.45454545454547,
+    "headroom_ratio": 0.7509333333333332,
+    "headroom_ratio_note": "max_warps(64) / warps_required(85.2) = 75.1% peak BW ceiling"
+  },
+  "sensitivity_analysis": {
+    "dram_latency_200ns": {
+      "warps_per_sm_required": 56.818181818181816,
+      "headroom_ratio": 1.1264,
+      "max_bw_pct": 100.0,
+      "note": "At 200 ns, 64 warps/SM exceeds the 56.8 requirement — GPU could theoretically saturate BW"
+    },
+    "dram_latency_300ns": {
+      "warps_per_sm_required": 85.22727272727273,
+      "headroom_ratio": 0.7509333333333332,
+      "max_bw_pct": 75.1,
+      "note": "Primary estimate. 64 warps/SM falls short of 85.2 requirement."
+    },
+    "dram_latency_400ns": {
+      "warps_per_sm_required": 113.63636363636364,
+      "headroom_ratio": 0.5632,
+      "max_bw_pct": 56.3,
+      "note": "Pessimistic. Ceiling approaches our best measurement (60.8%), suggesting actual latency may be near this."
+    }
+  },
+  "matrix_analysis": {
+    "webbase-1M": {
+      "floor_ms": 0.011097191666666666,
+      "actual_ms": 0.041088000312447547,
+      "gap": 3.7025584081661096,
+      "pct_peak": 27.008351787090472
+    },
+    "cant": {
+      "floor_ms": 0.010226629166666668,
+      "actual_ms": 0.04075039979070425,
+      "gap": 3.9847342781851056,
+      "pct_peak": 25.095776284873423
+    },
+    "pwtk": {
+      "floor_ms": 0.029812454999999998,
+      "actual_ms": 0.06632479950785637,
+      "gap": 2.224734578479242,
+      "pct_peak": 44.94918223834001
+    },
+    "ldoor": {
+      "floor_ms": 0.11948019916666666,
+      "actual_ms": 0.1963872008025646,
+      "gap": 1.6436798914991593,
+      "pct_peak": 60.839096783493844
+    },
+    "circuit5M": {
+      "floor_ms": 0.1673384825,
+      "actual_ms": 0.3211055979132652,
+      "gap": 1.9188987082709157,
+      "pct_peak": 52.113224928953215
+    },
+    "cage15": {
+      "floor_ms": 0.2651817425,
+      "actual_ms": 0.4636336028575897,
+      "gap": 1.7483617027578349,
+      "pct_peak": 57.19640269073714
+    }
+  }
+}
